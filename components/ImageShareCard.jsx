@@ -1,4 +1,4 @@
-// The card MailCheap draws for a page without a picture of its own (lib/share-card.js), at 1200 by 630 for the image
+// The card Ostro draws for a page without a picture of its own (lib/share-card.js), at 1200 by 630 for the image
 // that link previews and the website's cards load (app/archive/[slug]/og/route.js). isFluid: sized by its container's
 // width instead, whose element is a size container: the dashboard's previews of an issue's card. isIssue: an issue's
 // card, its title under the newsletter's name and logo; else the website's own, with the newsletter's name as title.

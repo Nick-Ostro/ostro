@@ -4,12 +4,12 @@ import { getAdminAlertEmails, getAdminEmails, getConfigProblems, getUrgentReplyT
 import { register } from "../instrumentation.js";
 
 const STRONG = { BETTER_AUTH_SECRET: "s".repeat(32), SUPPRESSION_HASH_KEY: "k".repeat(32) };
-const CLOUD = { ...STRONG, MAILCHEAP_CLOUD: "true", STRIPE_SECRET_KEY: "sk_live_x", STRIPE_WEBHOOK_SECRET: "whsec_x", RESEND_API_KEY: "re_x" };
+const CLOUD = { ...STRONG, OSTRO_CLOUD: "true", STRIPE_SECRET_KEY: "sk_live_x", STRIPE_WEBHOOK_SECRET: "whsec_x", RESEND_API_KEY: "re_x" };
 
 async function withEnv(values, run) {
 	const previous = { ...process.env };
 	try {
-		for (const name of ["MAILCHEAP_CLOUD", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "RESEND_API_KEY"]) delete process.env[name];
+		for (const name of ["OSTRO_CLOUD", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "RESEND_API_KEY"]) delete process.env[name];
 		Object.assign(process.env, values);
 		return await run();
 	} finally {
@@ -32,25 +32,25 @@ test("the server doesn't start with a short secret or hash key", () =>
 	withEnv(STRONG, () => {
 		assert.doesNotThrow(register);
 		process.env.SUPPRESSION_HASH_KEY = "short";
-		assert.throws(register, /MailCheap can't start\. SUPPRESSION_HASH_KEY must be at least 32 characters/);
+		assert.throws(register, /Ostro can't start\. SUPPRESSION_HASH_KEY must be at least 32 characters/);
 		process.env.SUPPRESSION_HASH_KEY = STRONG.SUPPRESSION_HASH_KEY;
 		process.env.BETTER_AUTH_SECRET = "short";
-		assert.throws(register, /MailCheap can't start\. BETTER_AUTH_SECRET must be at least 32 characters/);
+		assert.throws(register, /Ostro can't start\. BETTER_AUTH_SECRET must be at least 32 characters/);
 	}));
 
-test("MailCheap Cloud needs both Stripe keys and RESEND_API_KEY; a self-hosted server needs none of them", () => {
+test("Ostro needs both Stripe keys and RESEND_API_KEY; a self-hosted server needs none of them", () => {
 	assert.deepEqual(getConfigProblems(CLOUD), []);
 	for (const name of ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "RESEND_API_KEY"]) {
 		const problems = getConfigProblems({ ...CLOUD, [name]: " " });
 		assert.equal(problems.length, 1, name);
-		assert.match(problems[0], new RegExp(`MAILCHEAP_CLOUD is true, so ${name} has to be set`));
+		assert.match(problems[0], new RegExp(`OSTRO_CLOUD is true, so ${name} has to be set`));
 	}
 	assert.match(
-		getConfigProblems({ ...STRONG, MAILCHEAP_CLOUD: "true" })[0],
+		getConfigProblems({ ...STRONG, OSTRO_CLOUD: "true" })[0],
 		/so STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY have to be set: the cloud bills through Stripe and sends its own emails through Resend/
 	);
 	assert.deepEqual(getConfigProblems(STRONG), [], "self-hosted: no Stripe, no Resend");
-	assert.deepEqual(getConfigProblems({ ...STRONG, MAILCHEAP_CLOUD: "yes" }), [], "only exactly true is the cloud");
+	assert.deepEqual(getConfigProblems({ ...STRONG, OSTRO_CLOUD: "yes" }), [], "only exactly true is the cloud");
 });
 
 test("the cloud refuses to start without Stripe or Resend, and its health check fails with the reason", async () => {
@@ -63,7 +63,7 @@ test("the cloud refuses to start without Stripe or Resend, and its health check 
 		assert.equal(healthy.headers.get("cache-control"), "no-store");
 
 		delete process.env.STRIPE_SECRET_KEY;
-		assert.throws(register, /MailCheap can't start\. MAILCHEAP_CLOUD is true, so STRIPE_SECRET_KEY has to be set/);
+		assert.throws(register, /Ostro can't start\. OSTRO_CLOUD is true, so STRIPE_SECRET_KEY has to be set/);
 		const failing = await GET();
 		assert.equal(failing.status, 503);
 		const body = await failing.json();
@@ -82,7 +82,7 @@ test("a self-hosted server signs in ALLOWED_EMAILS, its @domains and ADMIN_EMAIL
 		assert.equal(isEmailAllowed(email, env), false, String(email));
 	}
 	assert.equal(isEmailAllowed("jane@example.com", {}), false, "never open by default");
-	assert.equal(isEmailAllowed("anyone@anywhere.dev", { MAILCHEAP_CLOUD: "true" }), true, "MailCheap Cloud takes anyone");
+	assert.equal(isEmailAllowed("anyone@anywhere.dev", { OSTRO_CLOUD: "true" }), true, "Ostro takes anyone");
 });
 
 test("ADMIN_EMAILS is a comma-separated list, trimmed and lowercased", () => {
@@ -109,10 +109,10 @@ test("ADMIN_ALERT_EMAILS is where the admins' alerts are emailed, and without an
 });
 
 test("URGENT_REPLY_TO is where replies to an owner's urgent emails go, and anything that isn't one address leaves the usual one", () => {
-	assert.equal(getUrgentReplyTo({ MAILCHEAP_CLOUD: "true", URGENT_REPLY_TO: " owner-help@example.com " }), "owner-help@example.com");
-	assert.equal(getUrgentReplyTo({ MAILCHEAP_CLOUD: "true" }), "hello@mailcheap.ai", "support's, without one");
+	assert.equal(getUrgentReplyTo({ OSTRO_CLOUD: "true", URGENT_REPLY_TO: " owner-help@example.com " }), "owner-help@example.com");
+	assert.equal(getUrgentReplyTo({ OSTRO_CLOUD: "true" }), "hello@ostro.email", "support's, without one");
 	for (const value of ["owner-help", "Owner <owner-help@example.com>", "a@example.com, b@example.com", "owner help@example.com"]) {
-		assert.equal(getUrgentReplyTo({ MAILCHEAP_CLOUD: "true", URGENT_REPLY_TO: value }), "hello@mailcheap.ai", value);
+		assert.equal(getUrgentReplyTo({ OSTRO_CLOUD: "true", URGENT_REPLY_TO: value }), "hello@ostro.email", value);
 	}
 	assert.equal(getUrgentReplyTo({ URGENT_REPLY_TO: "owner-help@example.com" }), "owner-help@example.com", "a self-hosted server too");
 	assert.equal(getUrgentReplyTo({}), null, "else EMAIL_FROM gets the replies there");

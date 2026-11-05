@@ -8,9 +8,9 @@ import { activate, anonymous, as, catchRedirect, form, listPlanPrices, mockStrip
 // The public side of the app on every server: where / sends signed-out visitors, which paths open without a session,
 // the plan buttons' way through sign-in to Checkout, the header's plane, and what the pages, the sitemap, robots.txt
 // and the web manifest tell search engines and browsers.
-// MailCheap Cloud's marketing site adds to it through the site extensions (tests/marketing/site.test.mjs).
+// Ostro's marketing site adds to it through the site extensions (tests/marketing/site.test.mjs).
 const ROOT = fileURLToPath(new URL("../", import.meta.url));
-const SITE_URL = "https://mailcheap.ai";
+const SITE_URL = "https://ostro.email";
 const CHECKOUT = "/billing/checkout?plan=growth&interval=year";
 // The companies that send the emails.
 const PROVIDERS = /Amazon|\bAWS\b|\bSES\b|PostShiba|Resend/;
@@ -214,7 +214,7 @@ describe("plan buttons", () => {
 		assert.equal(url, CHECKOUT);
 		assert.equal(await as(user, () => catchRedirect(checkout(url))), "https://checkout.stripe.com/c/pay/cs_test_site");
 		const created = calls.find(({ path }) => path === "/v1/checkout/sessions").body;
-		assert.equal(created.get("line_items[0][price]"), "price_mailcheap_growth_yearly");
+		assert.equal(created.get("line_items[0][price]"), "price_ostro_growth_yearly");
 		assert.equal(created.get("customer_email"), "plan-button@example.com");
 	});
 
@@ -264,7 +264,7 @@ describe("plan buttons", () => {
 describe("pricing", () => {
 	test("the price per 1,000 emails is a month's price over the plan's emails, yearly plans spread over 12 months", () => {
 		const { PLANS, getPricePerThousand } = m.plans;
-		const perThousand = (interval) => PLANS.map((plan) => m.format.formatUsdCents(getPricePerThousand(plan, interval)));
+		const perThousand = (interval) => PLANS.map((plan) => m.format.formatPriceCents(getPricePerThousand(plan, interval)));
 		assert.deepEqual(perThousand("month"), ["$0.95", "$0.52", "$0.40", "$0.30", "$0.17", "$0.16"]);
 		assert.deepEqual(perThousand("year"), ["$0.79", "$0.43", "$0.33", "$0.25", "$0.15", "$0.13"]);
 	});
@@ -370,22 +370,22 @@ describe("search engines", () => {
 		assert.ok(folders.includes("/campaigns") && folders.includes("/billing"));
 		for (const path of [...folders, "/admin", "/api/", "/mcp", "/welcome", "/oauth/"]) assert.ok(rules.disallow.includes(path), `${path} is crawlable`);
 
-		// Sign-in stays crawlable: MailCheap Cloud's is indexed, and search engines read a self-hosted server's noindex.
+		// Sign-in stays crawlable: Ostro's is indexed, and search engines read a self-hosted server's noindex.
 		const publicPaths = [...m.siteExtensions.publicPages, ...m.docs.DOC_PAGES.map(({ href }) => href), ...helpPaths(), "/signin"];
 		for (const path of publicPaths) {
 			assert.ok(!rules.disallow.some((rule) => path.startsWith(rule)), `${path} is blocked`);
 		}
 	});
 
-	// People look for MailCheap Cloud's sign-in by name; links to it carry ?next=, which the canonical address leaves out.
-	test("sign-in is indexed on MailCheap Cloud, at one address, and stays out of search on a self-hosted server", async () => {
+	// People look for Ostro's sign-in by name; links to it carry ?next=, which the canonical address leaves out.
+	test("sign-in is indexed on Ostro, at one address, and stays out of search on a self-hosted server", async () => {
 		const { generateMetadata } = await importFile("app/signin/page.js");
-		assert.deepEqual(await withEnv({ MAILCHEAP_CLOUD: "true", APP_URL: SITE_URL }, () => generateMetadata()), {
+		assert.deepEqual(await withEnv({ OSTRO_CLOUD: "true", APP_URL: SITE_URL }, () => generateMetadata()), {
 			title: "Sign in",
 			robots: { index: true, follow: true },
 			alternates: { canonical: `${SITE_URL}/signin` },
 		});
-		assert.deepEqual(await withEnv({ MAILCHEAP_CLOUD: "" }, () => generateMetadata()), { title: "Sign in" });
+		assert.deepEqual(await withEnv({ OSTRO_CLOUD: "" }, () => generateMetadata()), { title: "Sign in" });
 		assert.deepEqual((await importFile("app/layout.js")).metadata.robots, { index: false, follow: false }, "which the app's layout keeps out");
 	});
 
@@ -401,7 +401,7 @@ describe("search engines", () => {
 		for (const path of paths) {
 			const { file, metadata } = await readPage(path);
 			const title = await resolveTitle(file, metadata.title);
-			assert.match(title, /MailCheap/, `${path}: ${title}`);
+			assert.match(title, /Ostro/, `${path}: ${title}`);
 			assert.ok(metadata.description?.length >= 50 && metadata.description.length <= 200, `${path}: ${metadata.description}`);
 			assert.equal(metadata.alternates?.canonical, path, path);
 			// A page's openGraph would replace its layouts' whole: the share image and the page's address with it.
@@ -418,7 +418,7 @@ describe("search engines", () => {
 		const { metadata } = await importFile("app/(site)/layout.js");
 		assert.equal(metadata.metadataBase.href, new URL("/", m.config.getAppUrl()).href);
 		assert.deepEqual(metadata.robots, { index: true, follow: true });
-		assert.deepEqual(metadata.openGraph, { type: "website", siteName: "MailCheap", locale: "en_US", url: "./" });
+		assert.deepEqual(metadata.openGraph, { type: "website", siteName: "Ostro", locale: "en_US", url: "./" });
 		assert.equal(metadata.twitter.card, "summary_large_image");
 		assert.deepEqual((await importFile("app/layout.js")).metadata.robots, { index: false, follow: false }, "the app's own pages stay out of search");
 	});
@@ -444,7 +444,7 @@ describe("search engines", () => {
 		const response = (await importFile("app/site.webmanifest/route.js")).GET();
 		assert.equal(response.headers.get("content-type"), "application/manifest+json");
 		const manifest = await response.json();
-		assert.equal(manifest.name, "MailCheap");
+		assert.equal(manifest.name, "Ostro");
 		assert.equal(manifest.start_url, "/");
 		assert.deepEqual(manifest.icons.map(({ sizes }) => sizes), ["192x192", "512x512"]);
 		for (const { src, sizes, type } of manifest.icons) {

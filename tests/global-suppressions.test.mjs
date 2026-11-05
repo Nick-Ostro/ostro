@@ -214,7 +214,7 @@ describe("the never-email list", () => {
 
 	// The list's own scheme: an HMAC of the address as delivered, with a key derived from SUPPRESSION_HASH_KEY only.
 	function expectedHash(email) {
-		const key = crypto.hkdfSync("sha256", process.env.SUPPRESSION_HASH_KEY, "", "mailcheap-global-suppression-v1", 32);
+		const key = crypto.hkdfSync("sha256", process.env.SUPPRESSION_HASH_KEY, "", "ostro-global-suppression-v1", 32);
 		return crypto.createHmac("sha256", Buffer.from(key)).update(getDeliveryEmail(email)).digest("base64url");
 	}
 

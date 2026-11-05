@@ -22,15 +22,15 @@ import {
 	scaleSignupLimit,
 } from "../lib/plans.js";
 
-// Plans and the paywall are MailCheap Cloud's; the last test is a self-hosted server.
-process.env.MAILCHEAP_CLOUD = "true";
+// Plans and the paywall are Ostro's; the last test is a self-hosted server.
+process.env.OSTRO_CLOUD = "true";
 
 function selfHosted(run) {
-	process.env.MAILCHEAP_CLOUD = "";
+	process.env.OSTRO_CLOUD = "";
 	try {
 		return run();
 	} finally {
-		process.env.MAILCHEAP_CLOUD = "true";
+		process.env.OSTRO_CLOUD = "true";
 	}
 }
 
@@ -51,18 +51,18 @@ test("the six plans match the spec: prices, emails a month and subscribers, year
 });
 
 test("Stripe lookup keys name the plan and the interval, both ways", () => {
-	assert.equal(getLookupKey("growth", "month"), "mailcheap_growth_monthly");
-	assert.equal(getLookupKey("scale", "year"), "mailcheap_scale_yearly");
-	assert.equal(getLookupKey("max", "month"), "mailcheap_max_monthly");
-	assert.deepEqual(parseLookupKey("mailcheap_max_yearly"), { plan: "max", interval: "year" });
-	assert.equal(getLookupKey("ultra", "year"), "mailcheap_ultra_yearly");
-	assert.deepEqual(parseLookupKey("mailcheap_ultra_monthly"), { plan: "ultra", interval: "month" });
+	assert.equal(getLookupKey("growth", "month"), "ostro_growth_monthly");
+	assert.equal(getLookupKey("scale", "year"), "ostro_scale_yearly");
+	assert.equal(getLookupKey("max", "month"), "ostro_max_monthly");
+	assert.deepEqual(parseLookupKey("ostro_max_yearly"), { plan: "max", interval: "year" });
+	assert.equal(getLookupKey("ultra", "year"), "ostro_ultra_yearly");
+	assert.deepEqual(parseLookupKey("ostro_ultra_monthly"), { plan: "ultra", interval: "month" });
 	for (const plan of PLANS) {
 		for (const interval of ["month", "year"]) {
 			assert.deepEqual(parseLookupKey(getLookupKey(plan.id, interval)), { plan: plan.id, interval });
 		}
 	}
-	for (const key of [null, "", "growth_monthly", "mailcheap_enterprise_monthly", "mailcheap_pro_weekly", "mailcheap_pro_monthly_v2"]) {
+	for (const key of [null, "", "growth_monthly", "ostro_enterprise_monthly", "ostro_pro_weekly", "ostro_pro_monthly_v2"]) {
 		assert.equal(parseLookupKey(key), null, String(key));
 	}
 	assert.equal(readInterval("year"), "year");
@@ -177,13 +177,13 @@ test("Ultra sends 5,000,000 emails a month to up to 2,500,000 subscribers: a wee
 	assert.ok(Math.ceil(1_160_000 * 4.33) > getAccountLimits(account).emails, "not to 1,160,000");
 });
 
-test("self-hosted, without MAILCHEAP_CLOUD: no paywall, no plan limits, every account active unless blocked", () => {
+test("self-hosted, without OSTRO_CLOUD: no paywall, no plan limits, every account active unless blocked", () => {
 	for (const value of [undefined, "", "false", "1", "TRUE"]) {
-		if (value === undefined) delete process.env.MAILCHEAP_CLOUD;
-		else process.env.MAILCHEAP_CLOUD = value;
-		assert.equal(hasActiveSubscription({}), true, `MAILCHEAP_CLOUD=${value}`);
+		if (value === undefined) delete process.env.OSTRO_CLOUD;
+		else process.env.OSTRO_CLOUD = value;
+		assert.equal(hasActiveSubscription({}), true, `OSTRO_CLOUD=${value}`);
 	}
-	process.env.MAILCHEAP_CLOUD = "true";
+	process.env.OSTRO_CLOUD = "true";
 
 	selfHosted(() => {
 		for (const status of [undefined, "canceled", "unpaid"]) assert.equal(hasActiveSubscription({ subscriptionStatus: status }), true, String(status));
@@ -198,7 +198,7 @@ test("self-hosted, without MAILCHEAP_CLOUD: no paywall, no plan limits, every ac
 		const huge = { account: {}, emailsSent: 50_000_000, queued: 1_000_000, recipients: 2_000_000, activeContacts: 3_000_000 };
 		assert.equal(getPlanLimitProblem(huge), null);
 	});
-	assert.equal(getAccountSendProblem({}).code, ERROR_CODES.subscriptionRequired, "back on MailCheap Cloud");
+	assert.equal(getAccountSendProblem({}).code, ERROR_CODES.subscriptionRequired, "back on Ostro");
 });
 
 test("signup limits grow with the plan, from Starter's; a self-hosted server gets the largest plan's", () => {

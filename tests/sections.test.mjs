@@ -207,7 +207,7 @@ describe("sections in sends, previews, the API and the website", () => {
 		user.slug = email.split("@")[0];
 		const url = await as(user, () =>
 			catchRedirect(
-				m.newsletters.saveNewsletter(null, form({ name: `${user.slug} news`, slug: user.slug, fromEmail: `hello@${user.slug}.mailcheapmail.com`, postalAddress: "1 Main St, Paris" }))
+				m.newsletters.saveNewsletter(null, form({ name: `${user.slug} news`, slug: user.slug, fromEmail: `hello@${user.slug}.ostromail.com`, postalAddress: "1 Main St, Paris" }))
 			)
 		);
 		user.newsletterId = url.split("/").at(-1);

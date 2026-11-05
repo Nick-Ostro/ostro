@@ -5,7 +5,7 @@ import { activate, addSentIssue, as, callApi, catchRedirect, form, signIn, start
 
 // A newsletter's slug, as the settings form shows it: checked while it's typed (check_newsletter_slug), unique down to
 // the database, and what saving a new one does to the old subdomain.
-const APP_URL = "https://mailcheap.ai";
+const APP_URL = "https://ostro.email";
 let app;
 let m;
 
@@ -42,7 +42,7 @@ function outcome(response) {
 }
 
 before(async () => {
-	app = await startTestApp({ APP_URL, SHARED_DOMAIN: "mailcheap.ai" });
+	app = await startTestApp({ APP_URL, SHARED_DOMAIN: "ostro.email" });
 	m = {
 		newsletters: await import("../app/(app)/newsletters/actions.js"),
 		apiKeys: await import("../app/(app)/api-keys/actions.js"),
@@ -68,7 +68,7 @@ describe("checking a slug", () => {
 			slug: "www",
 			available: false,
 			reason: "reserved",
-			message: "www is reserved for MailCheap, pick another slug",
+			message: "www is reserved for Ostro, pick another slug",
 		});
 		assert.deepEqual(await check(jane, "notes!"), {
 			slug: "notes!",
@@ -78,7 +78,7 @@ describe("checking a slug", () => {
 		});
 
 		assert.deepEqual(await saveSlug(jane, "john-notes"), { error: "This slug is already used" });
-		assert.deepEqual(await saveSlug(jane, "www"), { error: "www is reserved for MailCheap, pick another slug" });
+		assert.deepEqual(await saveSlug(jane, "www"), { error: "www is reserved for Ostro, pick another slug" });
 	});
 
 	test("from the API too; checking counts toward its own limit, never toward the slug changes", async () => {
@@ -99,7 +99,7 @@ describe("slugs in the database", () => {
 		await m.Newsletter.init();
 		const indexes = await m.Newsletter.collection.indexes();
 		assert.ok(indexes.some(({ key, unique }) => unique && Object.keys(key).join() === "slug"));
-		const twin = () => ({ accountId: new mongoose.Types.ObjectId(), name: "Twin", slug: "twin-notes", fromEmail: "hello@twin-notes.mailcheap.ai" });
+		const twin = () => ({ accountId: new mongoose.Types.ObjectId(), name: "Twin", slug: "twin-notes", fromEmail: "hello@twin-notes.ostro.email" });
 		await m.Newsletter.collection.insertOne(twin());
 		await assert.rejects(m.Newsletter.collection.insertOne(twin()), { code: 11000 });
 	});
@@ -113,9 +113,9 @@ describe("a new slug", () => {
 		assert.equal((await saveSlug(user, "new-notes")).ok, true);
 
 		for (const path of ["/c/token", "/o/token", "/unsubscribe?token=token", "/confirm?token=token", "/keep?token=token"]) {
-			assert.deepEqual(outcome(await visit(`https://old-notes.mailcheap.ai${path}`)), { next: true }, path);
+			assert.deepEqual(outcome(await visit(`https://old-notes.ostro.email${path}`)), { next: true }, path);
 		}
-		assert.deepEqual(outcome(await visit("https://old-notes.mailcheap.ai/p/first-issue")), { rewrite: "/archive/old-notes/p/first-issue" });
+		assert.deepEqual(outcome(await visit("https://old-notes.ostro.email/p/first-issue")), { rewrite: "/archive/old-notes/p/first-issue" });
 		assert.equal(await m.archive.getArchiveNewsletter("old-notes"), null, "no newsletter has the old slug");
 		assert.equal((await m.archive.getArchiveNewsletter("new-notes"))?.slug, "new-notes");
 	});

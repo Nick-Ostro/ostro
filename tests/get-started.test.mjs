@@ -42,7 +42,7 @@ async function addNewsletter(user, slug) {
 		catchRedirect(
 			m.newsletters.saveNewsletter(
 				null,
-				form({ name: `${slug} news`, slug, fromEmail: `hello@${slug}.mailcheapmail.com`, postalAddress: "1 Main St, Paris" })
+				form({ name: `${slug} news`, slug, fromEmail: `hello@${slug}.ostromail.com`, postalAddress: "1 Main St, Paris" })
 			)
 		)
 	);
@@ -77,7 +77,7 @@ function connectApp(user) {
 	const now = new Date();
 	return mongoose.connection.db
 		.collection("oauthConsent")
-		.insertOne({ clientId: "https://chatgpt.com/connector/mailcheap", userId: user.userId, scopes: ["openid", "mcp"], createdAt: now, updatedAt: now });
+		.insertOne({ clientId: "https://chatgpt.com/connector/ostro", userId: user.userId, scopes: ["openid", "mcp"], createdAt: now, updatedAt: now });
 }
 
 function tomorrow() {
@@ -126,25 +126,25 @@ describe("the steps", () => {
 		assert.equal(m.getStarted.isGetStartedOpen(await loadAccount(user), null), false, "no list without a newsletter");
 	});
 
-	test("its design: a preset picked, MailCheap's own as it was included, from the dashboard or the API, or a theme changed or picked before the step was there", async () => {
+	test("its design: a preset picked, Ostro's own as it was included, from the dashboard or the API, or a theme changed or picked before the step was there", async () => {
 		const user = await customer("gs-design@example.com", { hasPlan: true });
-		assert.deepEqual((await loadNewsletter(user)).theme, { preset: "mailcheap" }, "every newsletter has a theme from the start");
+		assert.deepEqual((await loadNewsletter(user)).theme, { preset: "ostro" }, "every newsletter has a theme from the start");
 		const { key } = await createKey(user, "full");
 		const patch = (body) => callApi("PATCH", `/api/v1/newsletters/${user.newsletterId}`, { key, body });
 		assert.equal((await patch({ description: "Notes from the road.", theme: {} })).status, 200);
 		assert.deepEqual(await doneSteps(user), ["agent"], "the other settings and a theme without a preset pick nothing");
 
-		assert.equal((await pickTheme(user, "mailcheap")).ok, true);
-		assert.deepEqual(await doneSteps(user), ["design", "agent"], "keeping MailCheap's counts");
+		assert.equal((await pickTheme(user, "ostro")).ok, true);
+		assert.deepEqual(await doneSteps(user), ["design", "agent"], "keeping Ostro's counts");
 		assert.ok((await loadNewsletter(user)).getStarted.themeChosenAt instanceof Date);
 		assert.deepEqual(await doneSteps(user, await addNewsletter(user, "gs-design-b")), ["agent"], "each newsletter picks its own");
 
 		const viaApi = await customer("gs-design-api@example.com", { hasPlan: true });
 		const apiKey = (await createKey(viaApi, "full")).key;
-		const themed = await callApi("PATCH", `/api/v1/newsletters/${viaApi.newsletterId}`, { key: apiKey, body: { theme: { preset: "mailcheap" } } });
+		const themed = await callApi("PATCH", `/api/v1/newsletters/${viaApi.newsletterId}`, { key: apiKey, body: { theme: { preset: "ostro" } } });
 		assert.equal(themed.status, 200);
 		assert.deepEqual(await doneSteps(viaApi), ["design", "agent"], "an AI agent can pick it");
-		const body = { name: "Design notes", postalAddress: "1 Main St, Paris", theme: { preset: "mailcheap" } };
+		const body = { name: "Design notes", postalAddress: "1 Main St, Paris", theme: { preset: "ostro" } };
 		const created = await callApi("POST", "/api/v1/newsletters", { key: apiKey, body });
 		assert.equal(created.status, 201);
 		assert.deepEqual(await doneSteps(viaApi, created.body.id), ["design", "agent"], "or create a newsletter with one");
@@ -153,8 +153,8 @@ describe("the steps", () => {
 		const _id = new mongoose.Types.ObjectId(before.newsletterId);
 		await mongoose.connection.db.collection("newsletters").updateOne({ _id }, { $set: { theme: { preset: "midnight" } } });
 		assert.deepEqual(await doneSteps(before), ["design"]);
-		await mongoose.connection.db.collection("newsletters").updateOne({ _id }, { $set: { theme: { preset: "mailcheap", radius: "none" } } });
-		assert.deepEqual(await doneSteps(before), ["design"], "MailCheap's, changed");
+		await mongoose.connection.db.collection("newsletters").updateOne({ _id }, { $set: { theme: { preset: "ostro", radius: "none" } } });
+		assert.deepEqual(await doneSteps(before), ["design"], "Ostro's, changed");
 
 		const stranger = await customer("gs-design-stranger@example.com");
 		assert.ok((await pickTheme(stranger, "garden", before.newsletterId)).error, "another account's newsletter");

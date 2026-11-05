@@ -9,7 +9,7 @@ import { queueDueSummaries } from "@/lib/summary-send";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// Every hour: PostShiba's word on whether MailCheap can send, Telegram's first message once it's set up, the summary
+// Every hour: PostShiba's word on whether Ostro can send, Telegram's first message once it's set up, the summary
 // emails due this hour in their owners' timezones, the daily look at verified sending domains' DNS records, the
 // imports nobody looked at since they stalled, and blocked accounts' billing, plans blocked too long included.
 export const GET = withCronSecret(async () => {

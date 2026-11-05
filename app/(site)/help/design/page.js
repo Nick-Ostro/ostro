@@ -9,7 +9,7 @@ import { THEME_PRESETS } from "@/lib/themes";
 export const metadata = getHelpPageMetadata("design");
 
 export default function DesignPage() {
-	const [mailcheap, ...presets] = THEME_PRESETS;
+	const [ostro, ...presets] = THEME_PRESETS;
 
 	return (
 		<ArticleHelp slug="design">
@@ -26,12 +26,12 @@ export default function DesignPage() {
 				<Link href={getHelpHref("getting-started", "first-issue")}>Getting started</Link>
 			</p>
 			<p>
-				There are {THEME_PRESETS.length}: {mailcheap.name}, the black and white look newsletters start with, then{" "}
+				There are {THEME_PRESETS.length}: {ostro.name}, the black and white look newsletters start with, then{" "}
 				{presets.map(({ name }) => name).join(", ")}.
 			</p>
 			<FigureHelp
 				src="/help/design/themes.webp"
-				alt="The Design page's themes, each showing the newsletter's website and an email in it, with MailCheap in use."
+				alt="The Design page's themes, each showing the newsletter's website and an email in it, with Ostro in use."
 				caption="Themes on the Design page"
 			/>
 

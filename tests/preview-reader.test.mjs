@@ -76,7 +76,7 @@ describe("picking a contact to preview as", () => {
 	async function newsletter(owner, slug) {
 		const url = await as(owner, () =>
 			catchRedirect(
-				m.newsletters.saveNewsletter(null, form({ name: slug, slug, fromName: "Field notes", fromEmail: `hello@${slug}.mailcheapmail.com`, postalAddress: "1 Main St, Paris" }))
+				m.newsletters.saveNewsletter(null, form({ name: slug, slug, fromName: "Field notes", fromEmail: `hello@${slug}.ostromail.com`, postalAddress: "1 Main St, Paris" }))
 			)
 		);
 		return url.split("/").at(-1);

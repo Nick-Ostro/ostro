@@ -14,7 +14,7 @@ import { formatLinkUrl, normalizeUrl } from "@/lib/links";
 
 // The toolbar of the button being written in (lib/editor-button.js), above it: where it sits in the column, where it
 // goes, and a way to delete it. Its link opens a field, as the format menu's does, and so do Enter in the button's text
-// while it has no link and ⌘K. actionLink: { href, label }, the link MailCheap fills in for each reader of the email
+// while it has no link and ⌘K. actionLink: { href, label }, the link Ostro fills in for each reader of the email
 // (lib/action-links.js), which its button keeps: the toolbar says what it does instead of where it goes, and has no field.
 export default function MenuButton({ editor, isEditingLink, onEditLink, actionLink = null }) {
 	const menuRef = useRef(null);

@@ -15,7 +15,7 @@ import { renderEmail } from "@/lib/render-email";
 // its body in the campaign editor, without sections, and a preview of it as readers get it. The form sends its body in
 // the editor's HTML once it's edited there, and as it was saved until then, Markdown included (lib/newsletter-sections.js).
 // name: its fields' prefix. email: { subject, previewText, format, content }, and onChange(changes) takes what changed.
-// action: { href, label, buttonText, missing }, the link MailCheap fills in for each reader, which the email's button
+// action: { href, label, buttonText, missing }, the link Ostro fills in for each reader, which the email's button
 // keeps, and what to say while it has none. previewNewsletter: its name, postal address and theme, for the preview.
 // note: on the left under the editor, like a way back to the built-in email; children: buttons before Preview. The
 // editor opens on the email as it is when this mounts: a key starts it over.

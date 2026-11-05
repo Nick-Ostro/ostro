@@ -58,7 +58,7 @@ const MAX_FILE_MB = 100;
 const PREVIEW_ROWS = 6;
 
 // Into the newsletter the page shows. The file is read in the browser: a preview of the first contacts and where each
-// column goes, then its rows go to MailCheap in chunks and are imported in the background, which the contacts page
+// column goes, then its rows go to Ostro in chunks and are imported in the background, which the contacts page
 // follows (CardImports). Closing the dialog while the rows are sent doesn't stop them. A CSV dropped on the dialog, or
 // anywhere on the page, is read like one picked; without a plan, the page drop opens the paywall, like the button.
 // guides: how to export the file from other platforms, under the drop zone (siteExtensions.importGuides). isOpen and
@@ -366,7 +366,7 @@ function SummaryFile({ file, rowCount, contacts, hasEmail, onReplace }) {
 	);
 }
 
-// The first contacts as MailCheap will hold them: tags, and the first two fields the import fills.
+// The first contacts as Ostro will hold them: tags, and the first two fields the import fills.
 function TablePreview({ contacts, total, profile, fields }) {
 	const shownFields = profile.fields.slice(0, 2).map(({ column, key }) => ({
 		key,

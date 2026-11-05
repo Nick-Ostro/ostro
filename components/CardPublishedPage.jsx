@@ -11,7 +11,7 @@ import { isOptimizableImage } from "@/lib/thumbnail";
 import { cn } from "@/lib/utils";
 
 // A sent issue's page as its website and link previews show it, { title, description, imageUrl } (its own picture or
-// the card MailCheap draws), with what changes it: its editor, its place at the top of the website, which only a page
+// the card Ostro draws), with what changes it: its editor, its place at the top of the website, which only a page
 // the website lists can take, and its address.
 export default function CardPublishedPage({ id, page, slug, newsletter, isPinned, isListed, className, style }) {
 	const urls = getArchiveUrls(newsletter);

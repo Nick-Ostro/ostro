@@ -14,7 +14,7 @@ import { flushAfter } from "./stubs/next-server.mjs";
 // Until the first issue goes out nothing of it is public: its host answers as for a website that's off, while signups
 // and the confirm and unsubscribe links keep working there. The first send puts it online. Newsletters saved before
 // keep their setting.
-const SHARED_DOMAIN = "mailcheapmail.com";
+const SHARED_DOMAIN = "ostromail.com";
 const HIDDEN = { home: false, issue: false, sitemap: 404, robots: 404 };
 const LIVE = { home: true, issue: true, sitemap: 200, robots: 200 };
 let app;
@@ -283,11 +283,11 @@ describe("analytics", () => {
 		const settings = await renderSettings(user);
 		assert.match(settings, /value="GTM-ABCDEFGH"/);
 		assert.match(settings, /value="123456789012345"/);
-		assert.match(settings, /On counted-notes\.mailcheapmail\.com, it runs Google&#x27;s own tags; on your own domain, all of them\./);
+		assert.match(settings, /On counted-notes\.ostromail\.com, it runs Google&#x27;s own tags; on your own domain, all of them\./);
 		for (const color of ["#f9ab00", "#246fdb", "#0082fb"]) assert.match(settings, new RegExp(`fill="${color}"`), `each tool has its logo: ${color}`);
 		assert.doesNotMatch(settings, /s2\/favicons\?domain=(analytics|tagmanager)\.google\.com/, "not Google's G for both");
 		assert.match(settings, /href="\/help\/website-analytics"/);
-		assert.match(settings, /Runs once your website is on your own domain, never on counted-notes\.mailcheapmail\.com, which other newsletters share\./);
+		assert.match(settings, /Runs once your website is on your own domain, never on counted-notes\.ostromail\.com, which other newsletters share\./);
 		assert.match(settings, /name="customCode"/);
 		assert.match(settings, /href="\/help\/website-analytics#custom-code"/);
 	});

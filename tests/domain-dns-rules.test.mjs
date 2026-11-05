@@ -21,7 +21,7 @@ function cnameAnswers(answers = {}) {
 	return { cname: [], txt: [], targetTxt: [KEY], addresses: [], ...answers };
 }
 
-// A PostShiba domain as lib/domains.js stores it, with MailCheap's last look at its records.
+// A PostShiba domain as lib/domains.js stores it, with Ostro's last look at its records.
 function storedDomain({ verified = true, problems } = {}) {
 	return {
 		domain: "example.com",

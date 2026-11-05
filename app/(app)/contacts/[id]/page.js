@@ -200,7 +200,7 @@ export default async function ContactPage({ params, searchParams }) {
 								</Property>
 								{contact.confirmedAt && <Property label="Confirmed">{formatDate(contact.confirmedAt, timeZone)}</Property>}
 								<Property label="Last click">{formatDate(contact.lastClickAt, timeZone) ?? <TextEmpty label="Never" />}</Property>
-								{hasImportedNumbers(contact.imported) && <Property label="Before MailCheap">{describeImported(contact.imported)}</Property>}
+								{hasImportedNumbers(contact.imported) && <Property label="Before Ostro">{describeImported(contact.imported)}</Property>}
 							</dl>
 						</section>
 
@@ -552,10 +552,10 @@ function getInbox(email) {
 	return { domain, label: domain };
 }
 
-// A rate of the emails MailCheap sent them, else the one an import brought from their previous platform.
+// A rate of the emails Ostro sent them, else the one an import brought from their previous platform.
 function getRateCard(part, sent, importedRate) {
 	if (sent > 0) return { value: formatRate(part, sent, 0), detail: `${formatNumber(part)} of ${formatNumber(sent)}` };
-	if (Number.isFinite(importedRate)) return { value: `${Math.round(importedRate * 100)}%`, detail: "Before MailCheap" };
+	if (Number.isFinite(importedRate)) return { value: `${Math.round(importedRate * 100)}%`, detail: "Before Ostro" };
 	return { value: null, detail: "No emails yet" };
 }
 

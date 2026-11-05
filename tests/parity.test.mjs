@@ -24,7 +24,7 @@ const ALLOWED_IMPORTS = new Set([
 ]);
 const VIEW_ACTIONS = new Set(["selectNewsletter"]);
 const SEND_TOOLS = ["schedule_campaign", "send_campaign", "send_campaign_to_more", "resume_campaign"];
-const APP_URL = "https://mailcheap.ai";
+const APP_URL = "https://ostro.email";
 const SAMPLE_ID = "6650f1c2e9b1d4a012345678";
 
 let app;

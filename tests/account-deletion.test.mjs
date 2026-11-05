@@ -15,13 +15,13 @@ import { dnsRecords } from "./stubs/dns-broker.mjs";
 // Vercel in memory: what blocks it, the code it takes, what stops at once, restoring it, and what the purge removes and
 // keeps.
 const S3 = {
-	IMAGES_S3_BUCKET: "mailcheap-images-test",
+	IMAGES_S3_BUCKET: "ostro-images-test",
 	IMAGES_S3_ACCESS_KEY_ID: "images-key-id",
 	IMAGES_S3_SECRET_ACCESS_KEY: "images-secret",
 	IMAGES_CDN_URL: "https://cdn.example.com",
 	IMAGES_CLOUDFRONT_DISTRIBUTION_ID: "E2TESTDISTRIBUTION",
 };
-const DELETION_SUBJECT = /^(\d{6}) is your code to delete your MailCheap account$/;
+const DELETION_SUBJECT = /^(\d{6}) is your code to delete your Ostro account$/;
 const BLOCKED = { error: "Your account can't be deleted yet. This page says what to do first." };
 const WRONG_CODE = { error: "This code is wrong or expired" };
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -102,7 +102,7 @@ async function uploadImage(user) {
 function connectApp(user, clientId = "app-client") {
 	const owned = { clientId, userId: user.userId, createdAt: new Date() };
 	return Promise.all([
-		collection("oauthConsent").insertOne({ ...owned, scopes: ["mailcheap:full"] }),
+		collection("oauthConsent").insertOne({ ...owned, scopes: ["ostro:full"] }),
 		collection("oauthAccessToken").insertOne({ ...owned, token: `at-${clientId}-${user.userId}` }),
 		collection("oauthRefreshToken").insertOne({ ...owned, token: `rt-${clientId}-${user.userId}` }),
 	]);
@@ -308,8 +308,8 @@ describe("a deleted account", () => {
 		await connectApp(bystander);
 		await cancelPlan(user);
 		const newsletter = await m.Newsletter.findOne({ accountId: user.accountId, _id: user.newsletterId }).lean();
-		assert.ok(await withEnv({ MAILCHEAP_CLOUD: "" }, () => m.publicNewsletters.findOpenNewsletter({ slug: user.slug })), "open before");
-		assert.ok(await withEnv({ MAILCHEAP_CLOUD: "" }, () => m.archive.getArchiveNewsletter(user.slug)), "online before");
+		assert.ok(await withEnv({ OSTRO_CLOUD: "" }, () => m.publicNewsletters.findOpenNewsletter({ slug: user.slug })), "open before");
+		assert.ok(await withEnv({ OSTRO_CLOUD: "" }, () => m.archive.getArchiveNewsletter(user.slug)), "online before");
 
 		const before = Date.now();
 		await deleteAccount(user);
@@ -327,8 +327,8 @@ describe("a deleted account", () => {
 		assert.equal(m.state.isDeletionPending(account), true);
 		assert.equal(m.state.getAccountStatus(account), "deleting");
 		for (const cloud of ["true", ""]) {
-			await withEnv({ MAILCHEAP_CLOUD: cloud }, async () => {
-				assert.equal(m.state.hasActiveSubscription(account), false, `MAILCHEAP_CLOUD=${cloud}`);
+			await withEnv({ OSTRO_CLOUD: cloud }, async () => {
+				assert.equal(m.state.hasActiveSubscription(account), false, `OSTRO_CLOUD=${cloud}`);
 				assert.equal(await m.publicNewsletters.findOpenNewsletter({ slug: user.slug }), null, "no more signups");
 				assert.equal(await m.archive.getArchiveNewsletter(user.slug), null, "the archive is offline");
 				const contact = await m.Contact.create({ accountId: user.accountId, newsletterId: user.newsletterId, email: `late-${cloud || "self"}@example.org` });
@@ -365,7 +365,7 @@ describe("a deleted account", () => {
 		assert.equal(account.deletion, undefined);
 		assert.equal(await m.Newsletter.countDocuments({ accountId: user.accountId }), 1, "with its data");
 		assert.equal(await m.DeletionRecord.countDocuments({ accountId: user.accountId }), 0, "it wasn't deleted after all");
-		assert.ok(await withEnv({ MAILCHEAP_CLOUD: "" }, () => m.archive.getArchiveNewsletter(user.slug)), "the archive is back where no plan is needed");
+		assert.ok(await withEnv({ OSTRO_CLOUD: "" }, () => m.archive.getArchiveNewsletter(user.slug)), "the archive is back where no plan is needed");
 
 		assert.deepEqual(await runPurgeJob(job.body), { skipped: "not set to be purged at this time" });
 		assert.equal((await countData(user)).account, 1);
@@ -436,7 +436,7 @@ describe("the purge", () => {
 		const returning = await signIn(doomed.email);
 		assert.notEqual(String(returning.accountId), String(doomed.accountId), "signing in again opens a new account");
 		assert.ok(
-			platformEmails.slice(admins).some(({ to, subject }) => to.includes("admin@example.com") && subject === "[MailCheap] A deleted account's email signed up again"),
+			platformEmails.slice(admins).some(({ to, subject }) => to.includes("admin@example.com") && subject === "[Ostro] A deleted account's email signed up again"),
 			"and the admins hear of it"
 		);
 	});
@@ -461,7 +461,7 @@ describe("the purge", () => {
 		assert.equal(await m.Upload.countDocuments({ accountId: user.accountId }), 1, "kept, so the next try deletes the file");
 		assert.equal((await countData(user)).user, 0, "the rest went ahead");
 		assert.ok(
-			platformEmails.some(({ to, subject }) => to.includes("admin@example.com") && subject === "[MailCheap] Account purge postponed"),
+			platformEmails.some(({ to, subject }) => to.includes("admin@example.com") && subject === "[Ostro] Account purge postponed"),
 			"the admins hear of it"
 		);
 
@@ -523,7 +523,7 @@ describe("the purge", () => {
 				assert.deepEqual(await as(user, () => m.domains.addDomainAction(null, form({ domain: "ps-delete.dev" }))), { ok: true, domain: "ps-delete.dev" });
 				const { tenantId } = (await m.Account.findById(user.accountId).lean()).postshiba;
 				const tenantDomains = () => [...fake.state.domains.values()].filter((domain) => domain.tenant_id === tenantId).map(({ name }) => name).sort();
-				assert.deepEqual(tenantDomains(), ["ps-delete-news.mailcheapmail.com", "ps-delete.dev"]);
+				assert.deepEqual(tenantDomains(), ["ps-delete-news.ostromail.com", "ps-delete.dev"]);
 				await cancelPlan(user);
 
 				await deleteAccount(user);

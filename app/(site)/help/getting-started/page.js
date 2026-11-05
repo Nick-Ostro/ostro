@@ -18,21 +18,21 @@ export default function GettingStartedPage() {
 			<h2 id="sign-in">Sign in</h2>
 			<p>
 				{isGoogleEnabled() ? "Sign in with Google, or with your email address: " : "Sign in with your email address: "}
-				MailCheap emails you a code to type in. Each code works once, for 5 minutes, so there&apos;s no password to remember.
+				Ostro emails you a code to type in. Each code works once, for 5 minutes, so there&apos;s no password to remember.
 				{!isCloud() && " On this server, only the addresses its admin allowed can sign in."}
 				{isCloud() &&
 					" Codes only go to addresses that can receive email: a misspelled one like gmail.co gets the right spelling back, and throwaway inboxes can't open an account."}
 			</p>
 
 			<h2 id="setup">Set up your newsletter</h2>
-			<p>The first time you sign in, MailCheap asks four things:</p>
+			<p>The first time you sign in, Ostro asks four things:</p>
 			<ul>
 				<li>Your newsletter&apos;s name.</li>
 				<li>What it&apos;s about, in one line, under its name on your signup form and website. You can skip it.</li>
 				<li>Who it&apos;s from: the name your readers see in their inbox.</li>
 				<li>
 					Whether you have subscribers already, and where they are now
-					{isCloud() ? ", so MailCheap can suggest the plan that fits one issue a week" : ""}.
+					{isCloud() ? ", so Ostro can suggest the plan that fits one issue a week" : ""}.
 				</li>
 			</ul>
 			<p>
@@ -60,8 +60,8 @@ export default function GettingStartedPage() {
 				{isCloud() && (
 					<>
 						{" "}
-						With a plan, that corner then offers an email from MailCheap to reply to, so its next emails reach your inbox.{" "}
-						<Link href={getHelpHref("newsletters", "inbox-check")}>Getting MailCheap&apos;s emails in your inbox</Link>
+						With a plan, that corner then offers an email from Ostro to reply to, so its next emails reach your inbox.{" "}
+						<Link href={getHelpHref("newsletters", "inbox-check")}>Getting Ostro&apos;s emails in your inbox</Link>
 					</>
 				)}
 			</p>
@@ -127,9 +127,9 @@ export default function GettingStartedPage() {
 			<h2 id="sidebar">The sidebar</h2>
 			<p>
 				The sidebar lists your newsletter&apos;s pages, then your account&apos;s, like the <LinkApp href="/domains">Domains page</LinkApp>.
-				The button next to MailCheap at its top folds it down to its icons, for more room on the page. Folded, it opens over the
+				The button next to Ostro at its top folds it down to its icons, for more room on the page. Folded, it opens over the
 				page while your mouse is on it and folds back when you move away. To keep it open, click that button again, or the
-				MailCheap logo on a touch screen. Your browser remembers your choice.
+				Ostro logo on a touch screen. Your browser remembers your choice.
 			</p>
 			<p>
 				While you edit a campaign, the sidebar also folds down on its own to leave the issue more room. The next page shows it

@@ -47,17 +47,17 @@ export default function ListCleanupPage() {
 
 			<h2 id="last-chance-email">The last-chance email</h2>
 			<p>
-				MailCheap&apos;s own last-chance email asks whether they still want your newsletter, and follows its name. On the{" "}
+				Ostro&apos;s own last-chance email asks whether they still want your newsletter, and follows its name. On the{" "}
 				<LinkApp href="/newsletters/cleanup">List cleanup page</LinkApp>, you can write your own subject, preview text and content
 				instead, in your words or your readers&apos; language, in the same <Link href={getHelpHref("writing", "editor")}>editor</Link>{" "}
 				as your issues. Keep its button: each contact gets their own link in it, and its toolbar says Keeps them on your list. If
-				it&apos;s gone, Add the button brings it back, and Use the built-in email goes back to MailCheap&apos;s. Preview shows it as
+				it&apos;s gone, Add the button brings it back, and Use the built-in email goes back to Ostro&apos;s. Preview shows it as
 				they get it.
 			</p>
 			{isCloud() && (
 				<p>
 					Like issues, it goes through the <Link href={getHelpHref("sending", "content-check")}>content check</Link> when you save
-					it: while it&apos;s in review, cold contacts get MailCheap&apos;s own.
+					it: while it&apos;s in review, cold contacts get Ostro&apos;s own.
 				</p>
 			)}
 
@@ -70,7 +70,7 @@ export default function ListCleanupPage() {
 
 			<h2 id="domains">{showSpamList ? "Spam domains and domains without mail" : "Domains that can\u2019t receive email"}</h2>
 			<p>
-				Apart from the cleanup, MailCheap checks in the background that the domains of your contacts can receive email, each domain
+				Apart from the cleanup, Ostro checks in the background that the domains of your contacts can receive email, each domain
 				about once a month, for every newsletter, with nothing to turn on. A domain that no longer exists, or that has no mail
 				server, would make every email bounce. Once two checks a day apart agree, its contacts stop getting issues and show as
 				bounced, marked &ldquo;No mail server&rdquo;. Nothing was sent, so they don&apos;t count against your bounce rate. The domain
@@ -94,7 +94,7 @@ export default function ListCleanupPage() {
 			<p>
 				List cleanup is on for new newsletters. In the <LinkApp href="/newsletters/cleanup">List cleanup section</LinkApp> of the{" "}
 				<Link href={getHelpHref("newsletters", "list-cleanup")}>newsletter&apos;s settings</Link>, turn it off, or change when a contact
-				counts as cold: {CLEANUP_LIMITS.minIssues} to {CLEANUP_LIMITS.maxIssues} ignored issues, counting from the first issue MailCheap
+				counts as cold: {CLEANUP_LIMITS.minIssues} to {CLEANUP_LIMITS.maxIssues} ignored issues, counting from the first issue Ostro
 				sent them, and {CLEANUP_LIMITS.minDays} to {CLEANUP_LIMITS.maxDays} quiet days. A weekly newsletter can go lower on days.
 				The <Link href={getHelpHref("list-cleanup", "last-chance-email")}>last-chance email</Link> is there too, while the cleanup is
 				on.

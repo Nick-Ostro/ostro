@@ -44,9 +44,9 @@ async function sendTest(user) {
 describe("where emails sit", () => {
 	test("is saved from the Design page and the API, and the emails sent sit there", async () => {
 		const user = await customer("align-notes@example.com");
-		const saved = await as(user, () => m.newsletters.saveTheme(user.newsletterId, { preset: "mailcheap", emailAlign: "left" }));
+		const saved = await as(user, () => m.newsletters.saveTheme(user.newsletterId, { preset: "ostro", emailAlign: "left" }));
 		assert.equal(saved.theme.emailAlign, "left");
-		assert.deepEqual(await storedTheme(user), { preset: "mailcheap", emailAlign: "left" });
+		assert.deepEqual(await storedTheme(user), { preset: "ostro", emailAlign: "left" });
 		assert.match((await sendTest(user)).html, /<tr><td align="left" style="padding:32px 20px;">/);
 
 		const { key } = await as(user, () => m.apiKeys.createApiKey(null, form({ name: "Agent", level: "full" })));
@@ -56,7 +56,7 @@ describe("where emails sit", () => {
 		assert.equal(centered.status, 200);
 		assert.equal(centered.body.theme.emailAlign, "center");
 		assert.deepEqual(centered.body.theme.customized, []);
-		assert.deepEqual(await storedTheme(user), { preset: "mailcheap" }, "the preset's own is no change");
+		assert.deepEqual(await storedTheme(user), { preset: "ostro" }, "the preset's own is no change");
 		assert.match((await sendTest(user)).html, /<tr><td align="center" style="padding:32px 20px;">/);
 
 		const themes = await callApi("GET", "/api/v1/themes", { key });
@@ -68,6 +68,6 @@ describe("where emails sit", () => {
 		const owner = await customer("align-owner@example.com");
 		const stranger = await customer("align-stranger@example.com");
 		assert.ok((await as(stranger, () => m.newsletters.saveTheme(owner.newsletterId, { emailAlign: "left" }))).error);
-		assert.deepEqual(await storedTheme(owner), { preset: "mailcheap" });
+		assert.deepEqual(await storedTheme(owner), { preset: "ostro" });
 	});
 });

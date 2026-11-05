@@ -63,7 +63,7 @@ describe("sending tests", () => {
 		const user = await signIn(email);
 		await activate(user);
 		const slug = email.split("@")[0];
-		const fields = { name: `${slug} news`, slug, fromEmail: `hello@${slug}.mailcheapmail.com`, postalAddress: "1 Main St, Paris", ...newsletter };
+		const fields = { name: `${slug} news`, slug, fromEmail: `hello@${slug}.ostromail.com`, postalAddress: "1 Main St, Paris", ...newsletter };
 		user.newsletterId = (await as(user, () => catchRedirect(m.newsletters.saveNewsletter(null, form(fields))))).split("/").at(-1);
 		await addAuthor(user);
 		user.key = (await as(user, () => m.apiKeys.createApiKey(null, form({ name: "Agent", level: "full" })))).key;
@@ -237,7 +237,7 @@ describe("sending tests", () => {
 		const secondId = (
 			await as(owner, () =>
 				catchRedirect(
-					m.newsletters.saveNewsletter(null, form({ name: "Second", slug: "second-letter", fromEmail: "hello@second-letter.mailcheapmail.com", postalAddress: "1 Main St, Paris" }))
+					m.newsletters.saveNewsletter(null, form({ name: "Second", slug: "second-letter", fromEmail: "hello@second-letter.ostromail.com", postalAddress: "1 Main St, Paris" }))
 				)
 			)
 		)

@@ -165,23 +165,23 @@ test("links to a field of the one-page settings open its section's page, and set
 const newsletter = {
 	name: "Field notes",
 	slug: "field-notes",
-	fromEmail: "hello@field-notes.mailcheap.ai",
+	fromEmail: "hello@field-notes.ostro.email",
 	postalAddress: "1 Main St, Paris",
 	requireConfirmation: true,
 	welcome: { enabled: true },
 	cleanup: { enabled: true, issues: 8 },
 	archiveEnabled: true,
 };
-const context = { sharedDomain: "mailcheap.ai", appUrl: "https://mailcheap.ai", hasSentIssue: true, hasPlan: true };
+const context = { sharedDomain: "ostro.email", appUrl: "https://ostro.email", hasSentIssue: true, hasPlan: true };
 
 test("the overview says where each section stands", () => {
 	assert.deepEqual(getSettingsSummary({ newsletter, ...context }), {
 		general: { text: "Field notes · field-notes", tone: "none" },
-		sender: { text: "Shared address · hello@field-notes.mailcheap.ai", tone: "none" },
+		sender: { text: "Shared address · hello@field-notes.ostro.email", tone: "none" },
 		signups: { text: "Double opt-in on", tone: "on" },
 		welcome: { text: "Replaced by the confirmation email", tone: "none" },
 		cleanup: { text: "On · after 8 ignored issues", tone: "on" },
-		website: { text: "Live · field-notes.mailcheap.ai", tone: "on" },
+		website: { text: "Live · field-notes.ostro.email", tone: "on" },
 		form: { text: "Off", tone: "off" },
 		notifications: { text: "Weekly summary", tone: "on" },
 	});
@@ -232,7 +232,7 @@ test("the sender asks for a look without a postal address or with an unverified 
 	const noAddress = { ...newsletter, postalAddress: "", postalAddressCleared: true };
 	assert.deepEqual(getSettingsSummary({ newsletter: noAddress, ...context }).sender, { text: "Add a postal address to send", tone: "warning" });
 	assert.equal(
-		getSettingsSummary({ newsletter: { ...newsletter, postalAddress: "" }, ...context, defaultPostalAddress: "MailCheap, 1 Rue" }).sender.tone,
+		getSettingsSummary({ newsletter: { ...newsletter, postalAddress: "" }, ...context, defaultPostalAddress: "Ostro, 1 Rue" }).sender.tone,
 		"none",
 		"the server's default address counts"
 	);
@@ -260,8 +260,8 @@ test("the website waits for its first issue and for a plan, and shows its own su
 
 test("the design card names the theme and shows its colors", () => {
 	const colors = { background: "#ffffff", text: "#18181b", accent: "#e11d48" };
-	assert.deepEqual(getDesignSummary({ name: "MailCheap", isCustomized: false, colors }), {
-		text: "MailCheap",
+	assert.deepEqual(getDesignSummary({ name: "Ostro", isCustomized: false, colors }), {
+		text: "Ostro",
 		tone: "none",
 		swatches: ["#ffffff", "#18181b", "#e11d48"],
 	});

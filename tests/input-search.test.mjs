@@ -7,7 +7,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import InputSearch from "../components/InputSearch.jsx";
 
-// Search fields clear with MailCheap's own cross (components/ButtonClear.jsx), never the one browsers draw.
+// Search fields clear with Ostro's own cross (components/ButtonClear.jsx), never the one browsers draw.
 const ROOT = fileURLToPath(new URL("../", import.meta.url));
 
 test("a search field shows its cross once it has text, and a spinner while its results load", () => {

@@ -59,7 +59,7 @@ describe("a campaign's recipients", () => {
 			startedAt: sentAt,
 			sentAt,
 		});
-		const links = ["https://example.com/story?utm_source=mailcheap", "https://example.net/shop"].map((url) => m.linkStats.normalizeLink(url));
+		const links = ["https://example.com/story?utm_source=ostro", "https://example.net/shop"].map((url) => m.linkStats.normalizeLink(url));
 		const keys = links.map((url) => m.linkStats.getLinkKey(url));
 		for (const [index, url] of links.entries()) {
 			await m.CampaignLink.create({ accountId: user.accountId, campaignId: campaign._id, key: keys[index], url, clicks: 1, clickers: 1 });

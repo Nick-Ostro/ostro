@@ -72,7 +72,7 @@ const campaignSchema = new mongoose.Schema(
 		// The first picture its website shows, from the content.
 		thumbnailUrl: { type: String, trim: true },
 		// Its page on the website where it differs from the email (lib/web-page.js): the title, description and picture shown
-		// there, the picture an https:// address or "card" for the card MailCheap draws, and once the page is out, content of
+		// there, the picture an https:// address or "card" for the card Ostro draws, and once the page is out, content of
 		// its own, which leaves the email as it was sent. editedAt: when a page that was out last changed its words.
 		web: {
 			title: { type: String, trim: true },

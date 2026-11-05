@@ -14,7 +14,7 @@ import Newsletter from "@/models/Newsletter";
 
 export const metadata = { title: NOTIFICATIONS_SECTION.label };
 
-// What MailCheap emails its owner about the open newsletter, a card for each kind. A self-hosted server sends none of
+// What Ostro emails its owner about the open newsletter, a card for each kind. A self-hosted server sends none of
 // them: its settings have no such page.
 export default async function NotificationsPage() {
 	if (!isCloud()) redirect(SETTINGS_PATH);
@@ -42,7 +42,7 @@ export default async function NotificationsPage() {
 	);
 }
 
-// MailCheap as the preview shows the sender, the way the inbox will.
+// Ostro as the preview shows the sender, the way the inbox will.
 function getSummarySender() {
 	const from = getEmailFrom() ?? "";
 	return { name: APP_NAME, fromName: APP_NAME, fromEmail: /<([^>]+)>/.exec(from)?.[1] ?? from, imageUrl: "/icon-192.png" };

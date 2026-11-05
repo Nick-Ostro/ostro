@@ -10,7 +10,7 @@ const SIGNUP_SOURCES = new Set(["website", "embed"]);
 export const GLOBE_FRAME =
 	"absolute -inset-y-1/4 right-0 aspect-square translate-x-1/5 [mask-image:linear-gradient(to_right,transparent_4%,black_30%)]";
 
-// Where a contact is, as far as MailCheap knows: their country on a globe turned to face it. source: how they joined.
+// Where a contact is, as far as Ostro knows: their country on a globe turned to face it. source: how they joined.
 export default function CardLocation({ country, source, stagger = 0, className }) {
 	const name = getCountryName(country);
 

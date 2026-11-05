@@ -197,7 +197,7 @@ describe("PostShiba tenants", () => {
 		assert.ok(account.postshiba.tenantId);
 		assert.equal(account.postshiba.provisionedAt, undefined);
 
-		// A lost write: PostShiba has the tenant, MailCheap forgot it.
+		// A lost write: PostShiba has the tenant, Ostro forgot it.
 		await m.Account.updateOne({ _id: user.accountId }, { $unset: { "postshiba.tenantId": 1 } });
 		await m.tenants.provisionTenant(user.accountId);
 		account = await loadAccount(user);
@@ -209,7 +209,7 @@ describe("PostShiba tenants", () => {
 
 	test("when two plan starts race to create the tenant, the one that loses tries again and nobody is alerted", async () => {
 		const user = await signIn("ps-race@example.com");
-		const alerts = () => platformEmails.filter(({ subject }) => subject === "[MailCheap] PostShiba tenant not created").length;
+		const alerts = () => platformEmails.filter(({ subject }) => subject === "[Ostro] PostShiba tenant not created").length;
 		const before = alerts();
 		fake.fail({ method: "POST", path: /\/tenants$/, status: 500, body: { error: "Internal Server Error" } });
 		await m.billing.applySubscription(await loadAccount(user), subscription("ps-race"));
@@ -273,7 +273,7 @@ describe("PostShiba domains", () => {
 		const domain = await m.Domain.findOne({ accountId: owner.accountId, domain: "ps-owner.dev" }).lean();
 		const domainsBefore = fake.state.domains.size;
 		assert.deepEqual(await as(other, () => m.domains.addDomainAction(null, form({ domain: "ps-owner.dev" }))), {
-			error: "ps-owner.dev is used by another MailCheap account",
+			error: "ps-owner.dev is used by another Ostro account",
 		});
 		assert.equal(fake.state.domains.size, domainsBefore, "PostShiba never heard of the second claim");
 		assert.deepEqual(await as(other, () => m.domains.checkDomainAction(String(domain._id))), { error: "Domain not found" });
@@ -392,7 +392,7 @@ describe("PostShiba domains", () => {
 		const listDomain = async () => (await as(user, () => m.dashboard.runDashboardAction("list_domains"))).output.domains[0];
 		const renderPage = async () => renderToStaticMarkup(createElement(m.TooltipProvider, null, await as(user, () => m.domainsPage.default())));
 
-		for (const target of ["", "cname.mailcheap.ai"]) {
+		for (const target of ["", "cname.ostro.email"]) {
 			await withEnv({ ARCHIVE_CNAME_TARGET: target }, async () => {
 				const domain = await listDomain();
 				assert.equal(domain.status, "Ready", target);
@@ -442,7 +442,7 @@ describe("PostShiba sending", () => {
 		assert.equal(body.subject, "[Test] Issue 7");
 		assert.match(body.headers["List-Unsubscribe"], /\/api\/unsubscribe\?token=/);
 		assert.equal(body.headers["List-Unsubscribe-Post"], "List-Unsubscribe=One-Click");
-		assert.equal(body.headers["Feedback-ID"], `${id}:mc-${user.accountId}:test:mailcheap`, "PostShiba writes its own in its place, led by the same mc-<accountId>");
+		assert.equal(body.headers["Feedback-ID"], `${id}:mc-${user.accountId}:test:ostro`, "PostShiba writes its own in its place, led by the same mc-<accountId>");
 		assert.deepEqual(body.unique_args, { account_id: String(user.accountId), message_id: String(message._id), kind: "test", campaign_id: id });
 		assert.ok(response.message_id);
 		assert.equal(message.providerMessageId, undefined, "the Message-ID /sends answers with isn't the id PostShiba's events carry");
@@ -551,7 +551,7 @@ describe("PostShiba sending", () => {
 		fake.fail({ method: "POST", path: /\/sends$/, status: 403, body: { error: "kyc_required", field: "to" } });
 		assert.match((await as(user, () => m.campaigns.sendTestCampaign(id))).error, /hasn't approved production sending/);
 		const toAdmins = platformEmails.slice(emailsBefore).filter(({ to }) => to.includes("admin@example.com"));
-		assert.deepEqual(toAdmins.map(({ subject }) => subject), ["[MailCheap] PostShiba refuses MailCheap's sends"], "the campaign and the test are the same problem");
+		assert.deepEqual(toAdmins.map(({ subject }) => subject), ["[Ostro] PostShiba refuses Ostro's sends"], "the campaign and the test are the same problem");
 		assert.match(toAdmins[0].text, new RegExp(`Account ${user.accountId}: PostShiba hasn't approved production sending yet \\(kyc_required\\)\\.\\nReaders' emails are refused until PostShiba approves the team\\.`));
 	});
 
@@ -594,18 +594,18 @@ describe("PostShiba sending", () => {
 			assert.deepEqual([campaign.status, campaign.pauseReason], ["paused", "PostShiba refused the account's SMTP credential (401)"]);
 			assert.equal(await m.Message.countDocuments({ accountId: user.accountId, campaignId: id, status: "queued" }), 1, "waits for the resume");
 			const told = platformEmails.slice(before.emails).map(({ to, subject, reply_to }) => [to.join(), subject, reply_to]);
-			assert.deepEqual(told, [["ps-refused-again@example.com", "[MailCheap] Campaign paused", "hello@mailcheap.ai"]], "its owner, not the admins, and a resume lifts it");
+			assert.deepEqual(told, [["ps-refused-again@example.com", "[Ostro] Campaign paused", "hello@ostro.email"]], "its owner, not the admins, and a resume lifts it");
 			assert.equal(telegramMessages.length, before.telegram);
 
 			fake.fail(REFUSED_LOGIN);
 			await as(other, () => m.campaigns.sendCampaign(otherId, {}));
 			await runNextJob();
 			const toAdmins = platformEmails.slice(before.emails).filter(({ to }) => to.includes("admin@example.com"));
-			assert.deepEqual(toAdmins.map(({ subject }) => subject), ["[MailCheap] PostShiba refuses MailCheap's sends"]);
+			assert.deepEqual(toAdmins.map(({ subject }) => subject), ["[Ostro] PostShiba refuses Ostro's sends"]);
 			assert.match(toAdmins[0].text, new RegExp(`It refused the logins of 2 accounts within the hour, account ${other.accountId} last`));
 			assert.deepEqual(
 				telegramMessages.slice(before.telegram).map(({ text }) => text.split("\n")[0]),
-				["<b>MailCheap</b> · PostShiba refuses MailCheap's sends"]
+				["<b>Ostro</b> · PostShiba refuses Ostro's sends"]
 			);
 			await runJobs();
 			assert.equal((await m.Campaign.findOne({ accountId: other.accountId, _id: otherId }).lean()).status, "sent");
@@ -627,12 +627,12 @@ describe("PostShiba sending", () => {
 
 			const emails = platformEmails.slice(before.emails);
 			const toOwner = emails.filter(({ to }) => to.includes("ps-suspended@example.com"));
-			assert.deepEqual(toOwner.map(({ subject }) => subject), ["[MailCheap] Campaign paused"]);
+			assert.deepEqual(toOwner.map(({ subject }) => subject), ["[Ostro] Campaign paused"]);
 			assert.equal(toOwner[0].reply_to, "owner-help@example.com", "they can't lift it: their reply reaches an admin's own inbox");
 			const toAdmins = emails.filter(({ to }) => to.includes("admin@example.com"));
-			assert.deepEqual(toAdmins.map(({ subject }) => subject), ["[MailCheap] A paying customer can't send"]);
+			assert.deepEqual(toAdmins.map(({ subject }) => subject), ["[Ostro] A paying customer can't send"]);
 			const telegram = telegramMessages.slice(before.telegram);
-			assert.deepEqual(telegram.map(({ text }) => text.split("\n")[0]), ["<b>MailCheap</b> · A paying customer can't send"]);
+			assert.deepEqual(telegram.map(({ text }) => text.split("\n")[0]), ["<b>Ostro</b> · A paying customer can't send"]);
 			for (const text of [toAdmins[0].text, telegram[0].text]) {
 				assert.match(text, /ps-suspended \(ps-suspended\.dev, Starter plan\): PostShiba refuses its emails \(domain_suspended\)\. Its campaign paused with 2 emails waiting\./);
 				assert.match(text, /Nothing on their dashboard lifts it: ask PostShiba why, or lift it there\. Then they resume the campaign\./);
@@ -660,7 +660,7 @@ describe("PostShiba sending", () => {
 			const alert = await m.Alert.findOne({ accountId: null, key: `customer-blocked:${user.newsletterId}` }).lean();
 			assert.equal(alert.count, 2);
 			const toAdmins = platformEmails.slice(before.emails).filter(({ to }) => to.includes("admin@example.com"));
-			assert.deepEqual(toAdmins.map(({ subject }) => subject), ["[MailCheap] A paying customer can't send"], "once a day");
+			assert.deepEqual(toAdmins.map(({ subject }) => subject), ["[Ostro] A paying customer can't send"], "once a day");
 			assert.match(toAdmins[0].text, /ps-signups \(ps-signups\.dev, Starter plan\): PostShiba refuses its emails \(domain_suspended\)\. Its welcome emails fail\./);
 			assert.match(toAdmins[0].text, new RegExp(`/admin/newsletters/${user.newsletterId}`));
 			assert.equal(telegramMessages.length - before.telegram, 1);
@@ -718,7 +718,7 @@ describe("Feedback-ID on every email", () => {
 		assert.equal(steps.length, 2, "the first step and the next");
 		assert.deepEqual(
 			steps.map(({ body }) => body.content.headers["Feedback-ID"]),
-			[`${id}:${account}:campaign:mailcheap`, `${id}:${account}:campaign:mailcheap`],
+			[`${id}:${account}:campaign:ostro`, `${id}:${account}:campaign:ostro`],
 			"the campaign's, the same on each of its emails"
 		);
 
@@ -726,7 +726,7 @@ describe("Feedback-ID on every email", () => {
 		await m.Campaign.updateOne({ accountId: user.accountId, _id: id }, { $set: { status: "sending" } });
 		const lastChance = await m.Message.create({ accountId: user.accountId, campaignId: id, newsletterId: user.newsletterId, contactId: third._id, email: third.email, kind: "last-chance" });
 		assert.equal((await m.sending.sendMessageBatch({ accountId: String(user.accountId), messageIds: [String(lastChance._id)] })).sent, 1);
-		assert.equal(fake.state.injects.at(-1).body.content.headers["Feedback-ID"], `${id}:${account}:last-chance:mailcheap`);
+		assert.equal(fake.state.injects.at(-1).body.content.headers["Feedback-ID"], `${id}:${account}:last-chance:ostro`);
 
 		await as(user, () =>
 			m.newsletters.saveNewsletter(
@@ -744,10 +744,10 @@ describe("Feedback-ID on every email", () => {
 		assert.deepEqual(
 			fake.state.sends.slice(sent).map(({ body }) => body.headers["Feedback-ID"]),
 			[
-				`${user.newsletterId}:${account}:welcome:mailcheap`,
-				`${user.newsletterId}:${account}:confirmation:mailcheap`,
-				`${id}:${account}:test:mailcheap`,
-				`${user.newsletterId}:${account}:test:mailcheap`,
+				`${user.newsletterId}:${account}:welcome:ostro`,
+				`${user.newsletterId}:${account}:confirmation:ostro`,
+				`${id}:${account}:test:ostro`,
+				`${user.newsletterId}:${account}:test:ostro`,
 			]
 		);
 	});
@@ -778,7 +778,7 @@ describe("the shared address on PostShiba", () => {
 		await activate(user);
 		await createNewsletter(user, "ps-shared");
 		const newsletter = await m.Newsletter.findOne({ accountId: user.accountId }).lean();
-		const subdomain = "ps-shared.mailcheapmail.com";
+		const subdomain = "ps-shared.ostromail.com";
 		assert.equal(newsletter.fromEmail, `hello@${subdomain}`);
 		const atPostshiba = fake.state.domains.get(newsletter.sharedSender.providerDomainId);
 		assert.equal(atPostshiba.name, subdomain);
@@ -788,7 +788,7 @@ describe("the shared address on PostShiba", () => {
 			[
 				["CNAME", `ps1._domainkey.${subdomain}`, `${atPostshiba.id}.customers.postshiba.test`],
 				["CNAME", `rp.${subdomain}`, "rp.postshiba.test"],
-				["CNAME", subdomain, "cname.mailcheap.ai"],
+				["CNAME", subdomain, "cname.ostro.email"],
 			]
 		);
 		assert.equal(fake.callsTo("POST", /\/verify$/).filter(({ path }) => path.includes(atPostshiba.id)).length, 0, "no verification budget used");
@@ -798,7 +798,7 @@ describe("the shared address on PostShiba", () => {
 		const { body } = fake.state.sends.at(-1);
 		assert.equal(body.from, `"Jane" <hello@${subdomain}>`);
 		assert.equal(body.reply_to, "ps-shared@example.com", "replies go to the owner");
-		assert.match(body.headers["List-Unsubscribe"], /^<https:\/\/ps-shared\.mailcheapmail\.com\/api\/unsubscribe\?token=/);
+		assert.match(body.headers["List-Unsubscribe"], /^<https:\/\/ps-shared\.ostromail\.com\/api\/unsubscribe\?token=/);
 		assert.equal((await m.Newsletter.findOne({ accountId: user.accountId }).lean()).sharedSender.verified, true);
 	});
 
@@ -807,13 +807,13 @@ describe("the shared address on PostShiba", () => {
 		const before = { tenants: fake.state.tenants.size, domains: fake.state.domains.size, records: dnsRecords.size };
 		await createNewsletter(user, "ps-early");
 		let newsletter = await m.Newsletter.findOne({ accountId: user.accountId }).lean();
-		assert.equal(newsletter.fromEmail, "hello@ps-early.mailcheapmail.com");
+		assert.equal(newsletter.fromEmail, "hello@ps-early.ostromail.com");
 		assert.equal(newsletter.sharedSender?.domain, undefined);
 		assert.deepEqual({ tenants: fake.state.tenants.size, domains: fake.state.domains.size, records: dnsRecords.size }, before);
 
 		await m.billing.applySubscription(await loadAccount(user), subscription("ps-early"));
 		newsletter = await m.Newsletter.findOne({ accountId: user.accountId }).lean();
-		assert.equal(newsletter.sharedSender.domain, "ps-early.mailcheapmail.com");
+		assert.equal(newsletter.sharedSender.domain, "ps-early.ostromail.com");
 		assert.equal(fake.state.domains.get(newsletter.sharedSender.providerDomainId).tenant_id, (await loadAccount(user)).postshiba.tenantId);
 		assert.equal(newsletter.sharedSender.dnsRecordIds.length, 3);
 	});
@@ -828,9 +828,9 @@ describe("the shared address on PostShiba", () => {
 		fake.state.isDnsVisible = false;
 		try {
 			const id = await draft(user);
-			assert.match((await as(user, () => m.campaigns.sendTestCampaign(id))).error, /hello@ps-waiting.mailcheapmail.com is still being set up/);
+			assert.match((await as(user, () => m.campaigns.sendTestCampaign(id))).error, /hello@ps-waiting.ostromail.com is still being set up/);
 			const { sharedSender } = await m.Newsletter.findOne({ accountId: user.accountId }).lean();
-			assert.equal(sharedSender.domain, "ps-waiting.mailcheapmail.com", "set up again by the send");
+			assert.equal(sharedSender.domain, "ps-waiting.ostromail.com", "set up again by the send");
 			assert.equal(sharedSender.verified, false);
 
 			fake.state.isDnsVisible = true;
@@ -838,7 +838,7 @@ describe("the shared address on PostShiba", () => {
 			await m.Newsletter.updateOne({ accountId: user.accountId, _id: user.newsletterId }, { $set: { "sharedSender.checkedAt": new Date(Date.now() - 120_000) } });
 			assert.deepEqual(await as(user, () => m.campaigns.sendTestCampaign(id)), { ok: true });
 
-			await m.Newsletter.updateOne({ accountId: user.accountId, _id: user.newsletterId }, { $set: { fromEmail: "hello@ps-shared.mailcheapmail.com" } });
+			await m.Newsletter.updateOne({ accountId: user.accountId, _id: user.newsletterId }, { $set: { fromEmail: "hello@ps-shared.ostromail.com" } });
 			assert.match((await as(user, () => m.campaigns.sendTestCampaign(id))).error, /The shared address for this newsletter is hello@ps-waiting/, "never another account's");
 		} finally {
 			fake.state.isDnsVisible = true;
@@ -857,7 +857,7 @@ describe("PostShiba blocks", () => {
 			assert.deepEqual(await as(admin, () => m.admin.blockAccountAction(String(user.accountId), "Review")), { ok: true });
 		});
 		const blocked = platformEmails.slice(emailsBefore).find(({ to }) => to.includes("ps-pause@example.com"));
-		assert.deepEqual([blocked.subject, blocked.reply_to], ["[MailCheap] Account blocked", "owner-help@example.com"], "its owner's reply reaches an admin's own inbox");
+		assert.deepEqual([blocked.subject, blocked.reply_to], ["[Ostro] Account blocked", "owner-help@example.com"], "its owner's reply reaches an admin's own inbox");
 		const tenantId = user.account.postshiba.tenantId;
 		assert.equal(fake.state.tenants.get(tenantId).suspended, true);
 		assert.equal((await loadAccount(user)).postshiba.tenantStatus, "suspended");

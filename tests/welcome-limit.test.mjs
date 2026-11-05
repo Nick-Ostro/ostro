@@ -18,7 +18,7 @@ let admin;
 let nextId = 0;
 let visitor = 0;
 
-const isWelcomeNotice = ({ subject }) => subject.startsWith("[MailCheap] Welcome emails paused");
+const isWelcomeNotice = ({ subject }) => subject.startsWith("[Ostro] Welcome emails paused");
 
 async function callTool(key, name, args = {}) {
 	const request = new Request("http://localhost:3000/mcp", {
@@ -52,7 +52,7 @@ async function addNewsletter(user, { requireConfirmation = false } = {}) {
 				form({
 					name: `${user.slug} news`,
 					slug: user.slug,
-					fromEmail: `hello@${user.slug}.mailcheapmail.com`,
+					fromEmail: `hello@${user.slug}.ostromail.com`,
 					postalAddress: "1 Main St, Paris",
 					archiveEnabled: "on",
 					welcomeSubject: "Welcome aboard",
@@ -146,7 +146,7 @@ describe("when welcome emails pause", () => {
 		assert.equal(areWelcomeEmailsPaused({ ...account, limitOverrides: { emailsPerMonth: 30_000 } }, now), false, "an admin's numbers win");
 		assert.equal(areWelcomeEmailsPaused(account, addMonths(start, 1)), false, "the next month starts over before it's stored");
 		assert.equal(areWelcomeEmailsPaused({ ...account, subscriptionStatus: "canceled" }, now), false, "without a plan nothing sends anyway");
-		assert.equal(await withEnv({ MAILCHEAP_CLOUD: "" }, () => areWelcomeEmailsPaused(account, now)), false);
+		assert.equal(await withEnv({ OSTRO_CLOUD: "" }, () => areWelcomeEmailsPaused(account, now)), false);
 
 		assert.deepEqual(getWelcomePauseNotice({ emailsLimit: 20_000, periodEnd: new Date("2026-11-03T12:00:00Z") }), {
 			title: "Welcome emails paused: you've used this month's 20,000 emails",
@@ -171,7 +171,7 @@ describe("signup limits by plan", () => {
 		await sentEarlier(100, 0);
 		const emailsBefore = platformEmails.length;
 		assert.equal(await signUp("REST API", user, "past-starter@example.org"), null, "Starter's 100 went out");
-		const alert = platformEmails.slice(emailsBefore).find(({ subject }) => subject === "[MailCheap] Signup emails capped");
+		const alert = platformEmails.slice(emailsBefore).find(({ subject }) => subject === "[Ostro] Signup emails capped");
 		assert.ok(alert.text.includes("Over 100 welcome and confirmation emails for welcome-cap news in 10 minutes. New signups get none until it slows down. Bigger plans send more."));
 
 		await m.Account.updateOne({ _id: user.accountId }, { $set: { plan: "growth" } });
@@ -272,7 +272,7 @@ describe("the owner", () => {
 		const [notice] = notices;
 		const current = await usage(user);
 		assert.deepEqual(notice.to, ["notice@example.com"]);
-		assert.equal(notice.subject, "[MailCheap] Welcome emails paused: you've used this month's 2 emails");
+		assert.equal(notice.subject, "[Ostro] Welcome emails paused: you've used this month's 2 emails");
 		const { supportChatPath } = m.siteExtensions;
 		assert.equal(
 			notice.text,

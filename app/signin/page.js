@@ -16,7 +16,7 @@ import { findInvitation } from "@/lib/team";
 import { JOIN_PATH, readJoinToken } from "@/lib/team-rules";
 import { toSafeNextPath } from "@/lib/validation";
 
-// People search for MailCheap Cloud's sign-in by name, so search engines may list it there, as one address whatever
+// People search for Ostro's sign-in by name, so search engines may list it there, as one address whatever
 // the query its links carry. A self-hosted server's stays out of search like the rest of its dashboard.
 export function generateMetadata() {
 	if (!isCloud()) return { title: "Sign in" };
@@ -55,7 +55,7 @@ export default async function SigninPage({ searchParams }) {
 			<div className="flex flex-1 items-center justify-center py-12">
 				<div className="w-full max-w-[22rem] animate-enter">
 					<h1 className="font-display text-[2.5rem] leading-[1.05] font-[480] tracking-[-0.03em] text-balance">
-						{invitation ? `Join ${invitation.newsletter.name}` : "Sign in to MailCheap"}
+						{invitation ? `Join ${invitation.newsletter.name}` : "Sign in to Ostro"}
 					</h1>
 					{intro && <p className="mt-3 text-[15px] leading-6 text-pretty text-muted-foreground">{intro}</p>}
 					{oauthRequest?.isExpired ? null : (
@@ -89,8 +89,8 @@ export default async function SigninPage({ searchParams }) {
 // Only what changes what to do: an app connecting, an expired link, an account just deleted, an invitation to a team
 // that can't be read anymore, or a server that lets few emails in.
 function getIntro(oauthRequest, isDeleted, isInvitation) {
-	if (oauthRequest?.isExpired) return "This sign-in link expired. Go back to the app and connect MailCheap again.";
-	if (oauthRequest) return `${oauthRequest.client.name} wants to connect to your MailCheap account. Sign in first.`;
+	if (oauthRequest?.isExpired) return "This sign-in link expired. Go back to the app and connect Ostro again.";
+	if (oauthRequest) return `${oauthRequest.client.name} wants to connect to your Ostro account. Sign in first.`;
 	if (isDeleted) return `Your account is deleted. Sign in within ${DELETION_GRACE_DAYS} days to restore it.`;
 	if (isInvitation) return "You're invited to a newsletter's team. Sign in with the address your invitation went to.";
 	if (!isCloud()) return "Only the emails this server allows can sign in.";

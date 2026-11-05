@@ -25,7 +25,7 @@ import {
 process.env.BETTER_AUTH_SECRET = "test-session-secret-with-at-least-32-characters";
 process.env.APP_URL = "https://mail.example.com";
 
-const CLOUD = { MAILCHEAP_CLOUD: "true" };
+const CLOUD = { OSTRO_CLOUD: "true" };
 const ACCOUNT_ID = "74f1a2b3c4d5e6f7a8b9c0d1";
 const NEWSLETTER_ID = "74f1a2b3c4d5e6f7a8b9c0d2";
 const HOUR_MS = 3_600_000;
@@ -165,7 +165,7 @@ test("a day with no one joining or leaving and no issue is quiet", () => {
 	assert.equal(isQuietSummary({ ...quiet, unsubscribed: 1 }), false);
 });
 
-test("summaries are for paying MailCheap Cloud accounts, each newsletter weekly unless its owner chose", () => {
+test("summaries are for paying Ostro accounts, each newsletter weekly unless its owner chose", () => {
 	const paying = { subscriptionStatus: "active" };
 	assert.equal(isSummaryEligible(paying, CLOUD), true);
 	assert.equal(isSummaryEligible({ subscriptionStatus: "past_due" }, CLOUD), true);
@@ -197,7 +197,7 @@ test("a summary's settings link names one newsletter of one account and expires;
 	assert.equal(verifySummarySettingsToken(`${payload}.${signature.slice(0, -2)}AA`, now), null);
 	assert.throws(() => createSummarySettingsToken({ accountId: "not-an-id", newsletterId: NEWSLETTER_ID }, now));
 	assert.throws(() => createSummarySettingsToken({ accountId: ACCOUNT_ID }, now), "a link always names its newsletter");
-	const key = Buffer.from(crypto.hkdfSync("sha256", process.env.BETTER_AUTH_SECRET, "", "mailcheap-summary-settings", 32));
+	const key = Buffer.from(crypto.hkdfSync("sha256", process.env.BETTER_AUTH_SECRET, "", "ostro-summary-settings", 32));
 	const accountOnly = Buffer.from(JSON.stringify({ a: ACCOUNT_ID, t: Math.floor(now / 1000) })).toString("base64url");
 	const signed = `${accountOnly}.${crypto.createHmac("sha256", key).update(accountOnly).digest("base64url")}`;
 	assert.equal(verifySummarySettingsToken(signed, now), null, "a signed link for the whole account, as summaries were, changes nothing");
@@ -209,7 +209,7 @@ test("a summary's settings link names one newsletter of one account and expires;
 	assert.equal(verifySummaryShareToken(createSummaryShareToken({ name: "Hens", joined: 1, total: 1, frequency: "weekly", lastKey: "Oct 25" })), null);
 });
 
-test("share links exist on MailCheap Cloud for a period someone joined in, and every link opens the right newsletter", async () => {
+test("share links exist on Ostro for a period someone joined in, and every link opens the right newsletter", async () => {
 	const period = getSummaryPeriod({ frequency: "weekly", todayKey: "2026-10-26", timeZone: "UTC" });
 	const newsletter = (joined) => ({ id: NEWSLETTER_ID, name: "Hens", subscribers: { joined, total: 40 }, issue: { id: "74f1a2b3c4d5e6f7a8b9c0d3" } });
 	const account = { _id: ACCOUNT_ID };
@@ -224,7 +224,7 @@ test("share links exist on MailCheap Cloud for a period someone joined in, and e
 		assert.deepEqual(verifySummarySettingsToken(token), { accountId: ACCOUNT_ID, newsletterId: NEWSLETTER_ID });
 		assert.equal(createSummaryEmailLinks({ account, newsletter: newsletter(0), period }).shareUrl, null);
 	});
-	await withEnv({ MAILCHEAP_CLOUD: "" }, () => assert.equal(createSummaryEmailLinks({ account, newsletter: newsletter(4), period }).shareUrl, null));
+	await withEnv({ OSTRO_CLOUD: "" }, () => assert.equal(createSummaryEmailLinks({ account, newsletter: newsletter(4), period }).shareUrl, null));
 });
 
 const LINKS = {
@@ -269,8 +269,8 @@ test("the summary email escapes what customers write and carries a one-click uns
 	assert.ok(!email.html.includes("<script>alert(1)"));
 	assert.ok(email.html.includes("&lt;script&gt;alert(1)&lt;/script&gt;"));
 	assert.ok(!email.html.includes("<b>Hens</b>"));
-	assert.ok(email.html.includes("summaries are on for &lt;b&gt;Hens&lt;/b&gt; &amp; co in MailCheap"), "the footer names the newsletter it's about");
-	assert.match(email.text, /summaries are on for <b>Hens<\/b> & co in MailCheap\./);
+	assert.ok(email.html.includes("summaries are on for &lt;b&gt;Hens&lt;/b&gt; &amp; co in Ostro"), "the footer names the newsletter it's about");
+	assert.match(email.text, /summaries are on for <b>Hens<\/b> & co in Ostro\./);
 	assert.ok(!email.html.includes("Your other newsletters"), "one newsletter per email");
 	assert.ok(!/href="javascript:/i.test(email.html), "only web links become the most clicked link");
 	assert.deepEqual(email.headers, {

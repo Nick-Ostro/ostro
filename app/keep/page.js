@@ -6,6 +6,7 @@ import { getArchiveUrls } from "@/lib/archive-hosts";
 import { connectDb } from "@/lib/db";
 import { verifyKeepToken } from "@/lib/last-chance";
 import { findNewsletterAnywhere } from "@/lib/public-newsletters";
+import LinkSource from "@/components/LinkSource";
 
 // The URL carries the keep token: keep it out of search results and referrer headers.
 export const metadata = {
@@ -21,7 +22,7 @@ export default async function KeepPage({ searchParams }) {
 	const newsletter = reference ? await getNewsletter(reference.newsletterId) : null;
 
 	return (
-		<main className="flex min-h-dvh items-center justify-center bg-background px-4 py-16">
+		<main className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-16">
 			<StyleTheme theme={newsletter?.theme} />
 			{newsletter ? (
 				<FormKeep
@@ -34,6 +35,7 @@ export default async function KeepPage({ searchParams }) {
 					It may be older than 90 days. Sign up again to keep getting the newsletter.
 				</CardNotice>
 			)}
+			<LinkSource className="mt-6" />
 		</main>
 	);
 }

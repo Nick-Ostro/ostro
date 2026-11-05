@@ -277,7 +277,7 @@ describe("Add a newsletter's dialog", () => {
 		const created = await m.Newsletter.findOne({ accountId: user.accountId, slug: "third-letter" }).lean();
 		assert.deepEqual(
 			[created.name, created.description, created.fromName, created.postalAddress, created.fromEmail],
-			["Third letter", "Two ideas.", "Jo", "2 Side St, Lyon", "hello@third-letter.mailcheapmail.com"]
+			["Third letter", "Two ideas.", "Jo", "2 Side St, Lyon", "hello@third-letter.ostromail.com"]
 		);
 		assert.deepEqual(getCleanupSettings(created), { enabled: true, issues: 6, days: 180 }, "list cleanup starts on");
 		assert.equal(user.jar.get(m.rules.NEWSLETTER_COOKIE), String(created._id), "the new newsletter is the open one");
@@ -340,8 +340,8 @@ describe("the REST API and MCP with several newsletters", () => {
 		assert.deepEqual(
 			sharedAddresses.map(({ newsletterId, fromEmail, archiveHost }) => [newsletterId, fromEmail, archiveHost]),
 			[
-				[alpha, "hello@alpha.mailcheapmail.com", "alpha.mailcheapmail.com"],
-				[beta, "hello@beta-letter.mailcheapmail.com", "beta-letter.mailcheapmail.com"],
+				[alpha, "hello@alpha.ostromail.com", "alpha.ostromail.com"],
+				[beta, "hello@beta-letter.ostromail.com", "beta-letter.ostromail.com"],
 			]
 		);
 	});

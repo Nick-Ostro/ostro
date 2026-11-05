@@ -119,7 +119,7 @@ test("the hourly run queues one job per newsletter whose summary is due, in its 
 	await m.Newsletter.updateOne({ accountId: weekly.accountId, _id: weekly.newsletterId }, { $set: { summarySent: { key: WEEKLY_KEY, at: MONDAY } } });
 	assert.equal((await queueJobs()).keys[weekly.newsletterId], undefined, "already sent");
 	assert.equal((await queueJobs(new Date("2026-10-26T07:30:00Z"))).keys[daily.newsletterId], undefined, "before 8 AM");
-	await withEnv({ MAILCHEAP_CLOUD: "" }, async () => assert.deepEqual(await m.send.queueDueSummaries({ now: MONDAY }), { queued: 0 }));
+	await withEnv({ OSTRO_CLOUD: "" }, async () => assert.deepEqual(await m.send.queueDueSummaries({ now: MONDAY }), { queued: 0 }));
 });
 
 test("a summary goes out once, to the owner, with its newsletter's numbers and a one-click unsubscribe", async () => {

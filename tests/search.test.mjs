@@ -86,7 +86,7 @@ test("an article's sections come with their ids and the words a reader sees", ()
 
 test("the index has every article's sections and the docs' endpoints; a self-hosted server leaves out cloud-only articles", async () => {
 	const selfHosted = await buildSearchIndex({ env: {}, appUrl: "https://mail.example.com" });
-	const cloud = await buildSearchIndex({ env: { MAILCHEAP_CLOUD: "true" }, appUrl: "https://mailcheap.ai" });
+	const cloud = await buildSearchIndex({ env: { OSTRO_CLOUD: "true" }, appUrl: "https://ostro.email" });
 	for (const entry of cloud) {
 		assert.ok(["help", "api"].includes(entry.group) && entry.title && entry.href.startsWith("/"), JSON.stringify(entry));
 	}

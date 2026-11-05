@@ -59,29 +59,29 @@ test("the form's settings fall back to their defaults and refuse what doesn't fi
 
 test("the code to paste points at the server, escapes the owner's text and hides the bots' field", () => {
 	const settings = toSignupFormSettings({ buttonText: '"><script>alert(1)</script>', placeholder: "Your <email>" });
-	const { script, html } = getEmbedCode({ appUrl: "https://mailcheap.test", newsletterId: NEWSLETTER_ID, settings, theme: {} });
-	assert.equal(script, `<script src="https://mailcheap.test/embed.js" data-form="${NEWSLETTER_ID}" async></script>`);
-	assert.ok(html.startsWith(`<form action="https://mailcheap.test/api/embed/${NEWSLETTER_ID}" method="post"`));
+	const { script, html } = getEmbedCode({ appUrl: "https://ostro.test", newsletterId: NEWSLETTER_ID, settings, theme: {} });
+	assert.equal(script, `<script src="https://ostro.test/embed.js" data-form="${NEWSLETTER_ID}" async></script>`);
+	assert.ok(html.startsWith(`<form action="https://ostro.test/api/embed/${NEWSLETTER_ID}" method="post"`));
 	assert.ok(html.includes('name="website" tabindex="-1"'), "the field only bots fill in");
 	assert.ok(!html.includes("<script>") && html.includes("&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;"));
 	assert.ok(html.includes('placeholder="Your &lt;email&gt;"'));
 });
 
 test("the plain form keeps the colors of the mode its theme is made for", () => {
-	const html = (theme) => getEmbedCode({ appUrl: "https://mailcheap.test", newsletterId: NEWSLETTER_ID, settings: toSignupFormSettings({}), theme }).html;
+	const html = (theme) => getEmbedCode({ appUrl: "https://ostro.test", newsletterId: NEWSLETTER_ID, settings: toSignupFormSettings({}), theme }).html;
 	assert.match(html({ preset: "midnight" }), /#0d1017/);
 	assert.doesNotMatch(html({ preset: "midnight" }), /#eef1f6/);
 });
 
 test("with a list of sites there's no plain form to paste: only the framed one can prove which site it's on", () => {
 	const settings = toSignupFormSettings({ allowedDomains: ["example.com"] });
-	const { script, html } = getEmbedCode({ appUrl: "https://mailcheap.test", newsletterId: NEWSLETTER_ID, settings, theme: {} });
+	const { script, html } = getEmbedCode({ appUrl: "https://ostro.test", newsletterId: NEWSLETTER_ID, settings, theme: {} });
 	assert.ok(script.includes(`data-form="${NEWSLETTER_ID}"`));
 	assert.equal(html, null);
 });
 
-test("the prompt for an AI agent says what MailCheap is, gives both codes and the frame, links the docs and what's left to do", () => {
-	const appUrl = "https://mailcheap.test";
+test("the prompt for an AI agent says what Ostro is, gives both codes and the frame, links the docs and what's left to do", () => {
+	const appUrl = "https://ostro.test";
 	const newsletter = { name: "Field notes", description: "One idea a week." };
 	function prompt(signupForm, options) {
 		const settings = toSignupFormSettings(signupForm);
@@ -92,13 +92,13 @@ test("the prompt for an AI agent says what MailCheap is, gives both codes and th
 	const { code, text } = prompt({ enabled: true });
 	assert.ok(
 		text.startsWith(
-			"Add the signup form of my newsletter, Field notes, to my website. Whoever signs up there joins my list on MailCheap (https://mailcheap.test), the newsletter app I use."
+			"Add the signup form of my newsletter, Field notes, to my website. Whoever signs up there joins my list on Ostro (https://ostro.test), the newsletter app I use."
 		)
 	);
 	assert.ok(text.includes("It comes in two versions: pick the one that fits my site."));
 	assert.ok(text.includes(`\`\`\`html\n${code.script}\n\`\`\``) && text.includes(`\`\`\`html\n${code.html}\n\`\`\``), "both codes");
 	assert.ok(text.includes(`<iframe src="${appUrl}/embed/${NEWSLETTER_ID}" title="Newsletter signup"`), "the frame, for a component");
-	assert.ok(text.includes('{ type: "mailcheap:height", height }, checking they come from https://mailcheap.test.'));
+	assert.ok(text.includes('{ type: "ostro:height", height }, checking they come from https://ostro.test.'));
 	assert.ok(text.includes('the header Accept: application/json. It answers { "ok": true, "pending": false }'), "the plain form from fetch");
 	assert.ok(text.includes(`- How the form works: ${appUrl}/help/website#form-on-your-site`) && text.includes(`${appUrl}/llms.txt`));
 	assert.equal(
@@ -113,7 +113,7 @@ test("the prompt for an AI agent says what MailCheap is, gives both codes and th
 
 	const listed = prompt({ enabled: true, allowedDomains: ["example.com", "blog.dev"] });
 	assert.equal(listed.code.html, null);
-	assert.ok(listed.text.includes("It only works on the sites I listed in MailCheap (example.com, blog.dev), so use the script"));
+	assert.ok(listed.text.includes("It only works on the sites I listed in Ostro (example.com, blog.dev), so use the script"));
 	assert.ok(!listed.text.includes("## HTML") && !listed.text.includes("<form"), "no plain form to pick");
 	assert.ok(listed.text.endsWith(`- Add my site under Where it works at ${appUrl}/newsletters/form if it isn't one of example.com, blog.dev: the form only shows on the sites listed there.`));
 });
@@ -140,7 +140,7 @@ test("the card's headline follows the newsletter until its owner writes one, and
 	assert.equal(getSignupFormProblem(settings({ headline: "x".repeat(81) })), "Keep the headline under 80 characters");
 
 	const html = (signupForm) =>
-		getEmbedCode({ appUrl: "https://mailcheap.test", newsletterId: NEWSLETTER_ID, settings: settings(signupForm), theme: {}, newsletter }).html;
+		getEmbedCode({ appUrl: "https://ostro.test", newsletterId: NEWSLETTER_ID, settings: settings(signupForm), theme: {}, newsletter }).html;
 	assert.ok(!html({}).includes("Field notes"), "inline: the form alone");
 	const card = html({ layout: "card", headline: "<b>Join</b>" });
 	assert.ok(card.startsWith("<div ") && card.endsWith("</div>"));
@@ -384,7 +384,7 @@ describe("signups from forms on other sites", () => {
 		const forged = await post(id, { email: "forged@example.org" }, { headers: { origin: "https://example.com", referer: "https://example.com/" } });
 		assert.deepEqual([forged.status, (await forged.json()).error], [403, "This form doesn't take signups on this site"]);
 		await flushAfter();
-		const alerts = platformEmails.filter(({ subject }) => subject === "[MailCheap] HTML signup form refused");
+		const alerts = platformEmails.filter(({ subject }) => subject === "[Ostro] HTML signup form refused");
 		assert.deepEqual(alerts.at(-1)?.to, ["embed-forged@example.com"], "its owner learns the plain form is off");
 
 		// Or it loads the frame with a listed site as its referrer for a token, which only a browser can then use.
@@ -452,7 +452,7 @@ describe("signups from forms on other sites", () => {
 		assert.equal((await load(visitor())).status, 200, "other visitors still get the form");
 	});
 
-	test("on Vercel, the frame loads BotID's browser code from MailCheap's own host", async () => {
+	test("on Vercel, the frame loads BotID's browser code from Ostro's own host", async () => {
 		const user = await customer("embed-botid@example.com");
 		const id = user.newsletterId;
 		const load = async () =>
@@ -484,7 +484,7 @@ describe("signups from forms on other sites", () => {
 			assert.deepEqual([refused.status, (await refused.json()).error], [429, "This form is busy. Try again in a few minutes."]);
 			await flushAfter();
 		}
-		const alerts = platformEmails.slice(emailsBefore).filter(({ subject }) => subject === "[MailCheap] Signup form paused");
+		const alerts = platformEmails.slice(emailsBefore).filter(({ subject }) => subject === "[Ostro] Signup form paused");
 		assert.equal(alerts.length, 1);
 		assert.match(alerts[0].text, /Over 20 signups to embed-flood from its HTML form in 10 minutes, so it refuses new ones/);
 		assert.equal(await m.Contact.countDocuments({ accountId: user.accountId }), perNewsletterPlain.limit, "nobody the flood typed joins");

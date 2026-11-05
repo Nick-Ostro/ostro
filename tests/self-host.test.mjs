@@ -5,7 +5,7 @@ import { addAuthor, addVerifiedDomain, as, callApi, catchRedirect, form, jsonReq
 import { flushAfter } from "./stubs/next-server.mjs";
 import { published } from "./stubs/qstash.mjs";
 
-// A self-hosted server: no MAILCHEAP_CLOUD, no Stripe keys, no shared domain, and sign-in limited to
+// A self-hosted server: no OSTRO_CLOUD, no Stripe keys, no shared domain, and sign-in limited to
 // ALLOWED_EMAILS and ADMIN_EMAILS. Google answers in memory.
 const ALLOWED = "owner@example.com, @team.example.org";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -94,13 +94,13 @@ async function signInWithGoogle({ email, verified = true, sub = email }) {
 
 before(async () => {
 	app = await startTestApp({
-		MAILCHEAP_CLOUD: "",
+		OSTRO_CLOUD: "",
 		STRIPE_SECRET_KEY: "",
 		STRIPE_WEBHOOK_SECRET: "",
 		SHARED_DOMAIN: "",
 		ALLOWED_EMAILS: ALLOWED,
 		ADMIN_EMAILS: "admin@example.com",
-		EMAIL_FROM: "MailCheap <login@mail.example.com>",
+		EMAIL_FROM: "Ostro <login@mail.example.com>",
 		GOOGLE_CLIENT_ID: "google-client",
 		GOOGLE_CLIENT_SECRET: "google-secret",
 		QSTASH_CURRENT_SIGNING_KEY: "sig-current",
@@ -195,7 +195,7 @@ describe("billing is off", () => {
 		await addAuthor(user, newsletterId);
 		const lastSentAt = new Date(Date.now() - 90 * 86_400_000);
 		await m.Contact.insertMany(
-			Array.from({ length: 300 }, (_, index) => ({ accountId: user.accountId, newsletterId, email: `mailcheap-test-blast-${index}@gmail.com`, status: "active", lastSentAt }))
+			Array.from({ length: 300 }, (_, index) => ({ accountId: user.accountId, newsletterId, email: `ostro-test-blast-${index}@gmail.com`, status: "active", lastSentAt }))
 		);
 		const id = (await as(user, () => catchRedirect(m.campaigns.createCampaign(newsletterId)))).split("/").at(-1);
 		await as(user, () => m.campaigns.saveCampaign(id, { subject: "Issue", previewText: "This week", body: "<p>Hello</p>" }));

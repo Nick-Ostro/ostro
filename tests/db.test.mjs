@@ -6,7 +6,7 @@ import { startMongo } from "./helpers/mongo.mjs";
 
 // Where Vercel's runtime puts the current request, with its waitUntil.
 const REQUEST_CONTEXT = Symbol.for("@vercel/request-context");
-const ON_VERCEL = { VERCEL_URL: "mailcheap.example.com", VERCEL_REGION: "iad1" };
+const ON_VERCEL = { VERCEL_URL: "ostro.example.com", VERCEL_REGION: "iad1" };
 
 let mongo;
 let connectDb;

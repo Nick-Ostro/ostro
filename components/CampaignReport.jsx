@@ -80,7 +80,7 @@ export default function CampaignReport({
 	const canManage = !readOnly && hasRole(role, "admin");
 	const { stats } = campaign;
 	const id = campaign._id.toString();
-	// Held by the content check (lib/content-review.js): only MailCheap's review starts it, so it has no Resume.
+	// Held by the content check (lib/content-review.js): only Ostro's review starts it, so it has no Resume.
 	const reviewCode = campaign.status === "paused" && REVIEW_CODES.has(campaign.pauseCode) ? campaign.pauseCode : null;
 	// A web-only issue sent no email (lib/publish-to.js): its page and views stand in for the email's numbers.
 	const publishTo = readPublishTo(campaign);

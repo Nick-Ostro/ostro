@@ -20,7 +20,7 @@ const SECURITY_HEADERS = [
 	{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
 	{ key: "X-Frame-Options", value: "DENY" },
 	{ key: "X-Content-Type-Options", value: "nosniff" },
-	// The origin only, MailCheap's own pages included: a URL like a contacts search can hold a subscriber's email,
+	// The origin only, Ostro's own pages included: a URL like a contacts search can hold a subscriber's email,
 	// and the page it leads to can send its referrer to analytics.
 	{ key: "Referrer-Policy", value: "strict-origin" },
 ];
@@ -32,7 +32,7 @@ const EMBED_HEADERS = [
 	...SECURITY_HEADERS.filter(({ key }) => key !== "Content-Security-Policy" && key !== "X-Frame-Options"),
 ];
 
-// MailCheap Cloud's marketing site extends the shared pages through these two modules. Where its files exist they
+// Ostro's marketing site extends the shared pages through these two modules. Where its files exist they
 // take the defaults' place; the open source has none of them (tests/setup/hooks.mjs resolves the same way).
 const SITE_EXTENSIONS = Object.entries({
 	"@/lib/site-extensions": "./lib/marketing/site-extensions.js",
@@ -72,6 +72,6 @@ const nextConfig = {
 	},
 };
 
-// Vercel BotID's script and its calls go through MailCheap's own paths, rewritten to Vercel, with frame headers of their own
+// Vercel BotID's script and its calls go through Ostro's own paths, rewritten to Vercel, with frame headers of their own
 // after the ones above (lib/bot-check.js). Only on Vercel, where its check runs.
 export default process.env.VERCEL ? withBotId(nextConfig) : nextConfig;

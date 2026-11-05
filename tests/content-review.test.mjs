@@ -248,7 +248,7 @@ async function customer(email) {
 	const slug = email.split("@")[0];
 	const url = await as(user, () =>
 		catchRedirect(
-			m.newsletters.saveNewsletter(null, form({ name: `${slug} news`, slug, fromEmail: `hello@${slug}.mailcheapmail.com`, postalAddress: "1 Main St, Paris" }))
+			m.newsletters.saveNewsletter(null, form({ name: `${slug} news`, slug, fromEmail: `hello@${slug}.ostromail.com`, postalAddress: "1 Main St, Paris" }))
 		)
 	);
 	user.newsletterId = url.split("/").at(-1);
@@ -330,7 +330,7 @@ describe("the content check before a send", () => {
 		const campaign = await load(user, id);
 		assert.equal(campaign.status, "sending");
 		assert.equal(campaign.review.outcome, "flag");
-		assert.equal(emailsTo("admin@example.com", emailsBefore).filter(({ subject }) => subject === "[MailCheap] Issue flagged").length, 1);
+		assert.equal(emailsTo("admin@example.com", emailsBefore).filter(({ subject }) => subject === "[Ostro] Issue flagged").length, 1);
 		assert.equal(emailsTo("review-unsure@example.com", emailsBefore).length, 0, "the owner never sees the check's reasons");
 	});
 
@@ -411,7 +411,7 @@ describe("the content check before a send", () => {
 		assert.equal(campaign.pauseReason, "This issue can't be sent: Phishing isn't allowed");
 		assert.equal(campaign.review.decision, "rejected");
 		const toOwner = emailsTo("review-rejected@example.com", emailsBefore);
-		assert.ok(toOwner.some(({ subject, text }) => subject === "[MailCheap] An issue can't be sent" && text.includes("Phishing isn't allowed.\n")));
+		assert.ok(toOwner.some(({ subject, text }) => subject === "[Ostro] An issue can't be sent" && text.includes("Phishing isn't allowed.\n")));
 		assert.equal((await m.Account.findById(user.accountId).lean()).pauseReason, "Phishing isn't allowed");
 		assert.equal((await m.Account.findById(user.accountId).lean()).status, "paused");
 	});
@@ -425,7 +425,7 @@ describe("the content check before a send", () => {
 		const campaign = await load(user, id);
 		assert.equal(campaign.status, "sending");
 		assert.equal(campaign.review.outcome, "error");
-		assert.ok(emailsTo("admin@example.com", emailsBefore).some(({ subject }) => subject === "[MailCheap] Content check failed"));
+		assert.ok(emailsTo("admin@example.com", emailsBefore).some(({ subject }) => subject === "[Ostro] Content check failed"));
 	});
 
 	test("a scheduled send it holds waits paused instead of going back to draft", async () => {
@@ -470,8 +470,8 @@ describe("the content check before a send", () => {
 		await as(user, () => m.campaigns.sendCampaign(another, {}));
 		assert.equal((await load(user, another)).pauseCode, "content_review");
 		const toAdmins = emailsTo("admin@example.com", emailsBefore).map(({ subject }) => subject);
-		assert.equal(toAdmins.filter((subject) => subject === "[MailCheap] Over the check limit, held for review").length, 1, "one alert for the account");
-		assert.equal(toAdmins.filter((subject) => subject === "[MailCheap] Issue held for review").length, 0);
+		assert.equal(toAdmins.filter((subject) => subject === "[Ostro] Over the check limit, held for review").length, 1, "one alert for the account");
+		assert.equal(toAdmins.filter((subject) => subject === "[Ostro] Issue held for review").length, 0);
 		assert.equal(emailsTo("review-budget@example.com", emailsBefore).length, 0, "the owner only sees In review");
 
 		assert.deepEqual(await as(admin, () => m.admin.approveContentReview(fresh)), { ok: true });
@@ -594,8 +594,8 @@ describe("tips before a send or a schedule", () => {
 		assert.equal((await load(user, id)).pauseCode, "content_review");
 		assert.equal(await countMessages(user, id), 0);
 		const subjects = emailsTo("admin@example.com", emailsBefore).map(({ subject }) => subject);
-		assert.equal(subjects.filter((subject) => subject === "[MailCheap] Issue held for review").length, 1);
-		assert.ok(!subjects.includes("[MailCheap] Draft would be held"), "one alert for one send");
+		assert.equal(subjects.filter((subject) => subject === "[Ostro] Issue held for review").length, 1);
+		assert.ok(!subjects.includes("[Ostro] Draft would be held"), "one alert for one send");
 		assert.equal(emailsTo("tips-held@example.com", emailsBefore).length, 0);
 	});
 
@@ -608,7 +608,7 @@ describe("tips before a send or a schedule", () => {
 		assert.deepEqual(tips.map(({ field, quote }) => [field, quote]), [["content", "earn $5,000 a week"]]);
 		assert.equal(emailsTo("admin@example.com", emailsBefore).length, 0, "nothing went out yet");
 		assert.deepEqual(await as(user, () => m.campaigns.sendCampaign(id, {})), { ok: true });
-		assert.equal(emailsTo("admin@example.com", emailsBefore).filter(({ subject }) => subject === "[MailCheap] Issue flagged").length, 1);
+		assert.equal(emailsTo("admin@example.com", emailsBefore).filter(({ subject }) => subject === "[Ostro] Issue flagged").length, 1);
 	});
 
 	test("a schedule stops for its tips too; scheduled as it is, it goes out at its time without another check", async () => {
@@ -635,7 +635,7 @@ describe("tips before a send or a schedule", () => {
 		const emailsBefore = platformEmails.length;
 		const scheduledAt = new Date(Date.now() + 3_600_000).toISOString();
 		assert.deepEqual(await as(user, () => m.campaigns.scheduleCampaign(id, { scheduledAt, checkTips: true })), { ok: true });
-		const toAdmins = emailsTo("admin@example.com", emailsBefore).filter(({ subject }) => subject === "[MailCheap] Draft would be held");
+		const toAdmins = emailsTo("admin@example.com", emailsBefore).filter(({ subject }) => subject === "[Ostro] Draft would be held");
 		assert.equal(toAdmins.length, 1, "trying versions without sending is never silent");
 		assert.ok(toAdmins[0].text.includes(`/admin/campaigns/${id}`));
 		assert.equal(emailsTo("tips-schedule-held@example.com", emailsBefore).length, 0);
@@ -764,7 +764,7 @@ describe("the content check of a newsletter's own welcome, confirmation and last
 		assert.deepEqual(saved.confirmation.review, { status: "in_review", note: null });
 		assert.equal(saved.confirmation.isCustom, true);
 		const toAdmins = emailsTo("admin@example.com", emailsBefore);
-		assert.ok(toAdmins.some(({ subject, text }) => subject === "[MailCheap] Confirmation email held for review" && text.includes(`/admin/newsletters/${user.newsletterId}`)));
+		assert.ok(toAdmins.some(({ subject, text }) => subject === "[Ostro] Confirmation email held for review" && text.includes(`/admin/newsletters/${user.newsletterId}`)));
 		assert.equal(emailsTo("signup-held@example.com", emailsBefore).length, 0, "the owner only sees In review");
 
 		const listed = await api(user, "GET", "/newsletters");
@@ -799,7 +799,7 @@ describe("the content check of a newsletter's own welcome, confirmation and last
 		assert.ok(
 			toOwner.some(
 				({ subject, text }) =>
-					subject === "[MailCheap] Your welcome email can't be sent" &&
+					subject === "[Ostro] Your welcome email can't be sent" &&
 					text.includes("Phishing isn't allowed. New subscribers get no welcome email until you change it.")
 			)
 		);
@@ -849,12 +849,12 @@ describe("the content check of a newsletter's own welcome, confirmation and last
 		assert.equal(saved.lastChance.isCustom, true);
 		assert.ok(!JSON.stringify(saved).includes(REASON), "the API never shows the check's reasons");
 		const toAdmins = emailsTo("admin@example.com", emailsBefore);
-		assert.ok(toAdmins.some(({ subject, text }) => subject === "[MailCheap] Last-chance email held for review" && text.includes(`/admin/newsletters/${user.newsletterId}`)));
+		assert.ok(toAdmins.some(({ subject, text }) => subject === "[Ostro] Last-chance email held for review" && text.includes(`/admin/newsletters/${user.newsletterId}`)));
 		assert.equal(await sendLastChance(user), "Do you still want cleanup-held news?", "the built-in one goes out");
 
 		const CleanupPage = (await import("../app/(app)/newsletters/cleanup/page.js")).default;
 		const page = renderToStaticMarkup(await as(user, () => CleanupPage()));
-		assert.ok(page.includes("In review: a person at MailCheap checks this email before it goes out"), "its page says so");
+		assert.ok(page.includes("In review: a person at Ostro checks this email before it goes out"), "its page says so");
 		assert.ok(page.includes('name="lastChanceSubject"') && page.includes("Still there?"), "with the email to change it");
 		assert.ok(!page.includes(REASON), "never why");
 

@@ -70,7 +70,7 @@ export default async function CampaignPage({ params, searchParams }) {
 			sendsEmail(campaign) ? listCampaignRecipients(account, campaign, { filter, limit: shown }) : null,
 			newsletter.archiveEnabled && campaign.archiveSlug ? getArchiveIssue(newsletter, campaign.archiveSlug) : null,
 		]);
-		// Its card as the website shows it: its page's title, description and picture, or the card MailCheap draws.
+		// Its card as the website shows it: its page's title, description and picture, or the card Ostro draws.
 		const webPage = issue && {
 			title: issue.subject,
 			description: issue.previewText,

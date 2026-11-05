@@ -5,7 +5,7 @@ import { activate, as, callApi, catchRedirect, form, signIn, startTestApp } from
 import { domainsWithoutMail } from "./stubs/mail-domains.mjs";
 
 // What an import leaves out stays listed for its account, with why. Role addresses and throwaway inboxes, which
-// MailCheap only judges from the address, come back when the account vouches for them; the rest would bounce, or the
+// Ostro only judges from the address, come back when the account vouches for them; the rest would bounce, or the
 // person asked not to get the emails, so they stay out.
 
 test("the rows left out keep their address and reason, and the contact they'd be only when they can come back", () => {

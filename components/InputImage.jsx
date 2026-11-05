@@ -52,7 +52,7 @@ export default function InputImage({ name, defaultValue, label, isRound, isCropp
 		upload(file);
 	}
 
-	// An upload from before is drawn through MailCheap's own address (next/image), which a canvas can read. One the image
+	// An upload from before is drawn through Ostro's own address (next/image), which a canvas can read. One the image
 	// optimizer doesn't take is used as it is.
 	function select(image) {
 		if (!isCropped || isSquare(image)) return update(image.url);

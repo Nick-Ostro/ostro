@@ -60,7 +60,7 @@ export default function SliderPricing({ plans, freeMonths, initialIndex = 0, ini
 				</p>
 
 				<div className="mt-auto pt-8">
-					{/* On a phone the bars are 32 to 41px wide, and a yearly price like $7,990 only fits them in a smaller size. */}
+					{/* On a phone the bars are 32 to 41px wide, and a yearly price like €7,990 only fits them in a smaller size. */}
 					<div aria-hidden="true" className="relative h-32 sm:h-36">
 						{plans.map((stop, stopIndex) => (
 							<button

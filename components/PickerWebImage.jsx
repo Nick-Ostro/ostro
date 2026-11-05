@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { WEB_CARD } from "@/lib/web-page";
 
 // The picture of an issue's page, its cards on the website and its link previews (lib/web-page.js): one of the issue's
-// own pictures, one uploaded or used before, or the card MailCheap draws with its title. value: the picked one, WEB_CARD,
+// own pictures, one uploaded or used before, or the card Ostro draws with its title. value: the picked one, WEB_CARD,
 // or "" for none, which shows autoImage, the content's first picture, or the card when it's null. pictures: the issue's
 // own, in order. card: what the card shows (lib/share-card.js getIssueCard). isLarge: a grid of wide tiles, for the web
 // page's editor, instead of a row of small ones.

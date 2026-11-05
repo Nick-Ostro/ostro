@@ -14,7 +14,7 @@ const ids = {};
 async function createNewsletter(user, { name, slug }) {
 	const url = await as(user, () =>
 		catchRedirect(
-			m.newsletters.saveNewsletter(null, form({ name, slug, fromName: name, fromEmail: `hello@${slug}.mailcheapmail.com`, postalAddress: "1 Main St, Paris" }))
+			m.newsletters.saveNewsletter(null, form({ name, slug, fromName: name, fromEmail: `hello@${slug}.ostromail.com`, postalAddress: "1 Main St, Paris" }))
 		)
 	);
 	return url.split("/").at(-1);

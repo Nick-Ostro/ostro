@@ -108,7 +108,7 @@ describe("an issue's page on the website", () => {
 		user.slug = email.split("@")[0];
 		const url = await as(user, () =>
 			catchRedirect(
-				m.newsletters.saveNewsletter(null, form({ name: `${user.slug} news`, slug: user.slug, fromEmail: `hello@${user.slug}.mailcheapmail.com`, postalAddress: "1 Main St, Paris" }))
+				m.newsletters.saveNewsletter(null, form({ name: `${user.slug} news`, slug: user.slug, fromEmail: `hello@${user.slug}.ostromail.com`, postalAddress: "1 Main St, Paris" }))
 			)
 		);
 		user.newsletterId = url.split("/").at(-1);
@@ -214,7 +214,7 @@ describe("an issue's page on the website", () => {
 		assert.equal(elsewhere.status, 400, "a picture from anywhere could change after the page was checked");
 		assert.match(elsewhere.body.error.message, /page's own pictures, or an image uploaded/);
 		await upload(user, "https://cdn.example.com/picked.png");
-		assert.equal((await patch(user, id, { image: "https://cdn.example.com/picked.png" })).status, 200, "one uploaded to MailCheap");
+		assert.equal((await patch(user, id, { image: "https://cdn.example.com/picked.png" })).status, 200, "one uploaded to Ostro");
 		assert.equal((await shown(user, id)).thumbnailUrl, "https://cdn.example.com/picked.png");
 		const other = await customer("web-sent-other@example.com");
 		await upload(other, "https://cdn.example.com/theirs.png");
@@ -241,7 +241,7 @@ describe("an issue's page on the website", () => {
 		assert.equal(refused.body.error.message, WEB_CHANGE_REFUSED);
 		assert.ok(renderIssueBody(await shown(user, id)).html.includes("Our news"), "the page keeps what it showed");
 		assert.equal((await load(user, id)).web?.format, undefined);
-		const alerts = platformEmails.slice(emailsBefore).filter(({ subject }) => subject === "[MailCheap] Page change refused");
+		const alerts = platformEmails.slice(emailsBefore).filter(({ subject }) => subject === "[Ostro] Page change refused");
 		assert.equal(alerts.length, 1);
 		assert.ok(!JSON.stringify(alerts).includes("Log in to your bank"), "alerts name the page, never its words");
 

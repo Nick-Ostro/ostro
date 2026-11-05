@@ -390,7 +390,7 @@ describe("HTML blocks through the API and the dashboard", () => {
 		};
 		user = await signIn("html-blocks@example.com");
 		await activate(user);
-		const fields = { name: "Blocks", slug: "html-blocks", fromName: "Field notes", fromEmail: "hello@html-blocks.mailcheapmail.com", postalAddress: "1 Main St, Paris" };
+		const fields = { name: "Blocks", slug: "html-blocks", fromName: "Field notes", fromEmail: "hello@html-blocks.ostromail.com", postalAddress: "1 Main St, Paris" };
 		user.newsletterId = (await as(user, () => catchRedirect(m.newsletters.saveNewsletter(null, form(fields))))).split("/").at(-1);
 		user.key = (await as(user, () => m.apiKeys.createApiKey(null, form({ name: "Agent", level: "full" })))).key;
 	});

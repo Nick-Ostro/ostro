@@ -118,7 +118,7 @@ describe("the forms BotID checks", () => {
 	test("BotID's script and calls pass the proxy on a newsletter's host and without a session", async () => {
 		const sources = (await withBotId({}).rewrites()).map(({ source }) => source.replace(":path*", "p.js"));
 		for (const path of sources) {
-			for (const host of ["bot-notes.mailcheapmail.com", "localhost:3000"]) {
+			for (const host of ["bot-notes.ostromail.com", "localhost:3000"]) {
 				const response = await m.proxy(new m.NextRequest(`https://${host}${path}`, { headers: { host } }));
 				assert.equal(response.headers.get("x-middleware-next"), "1", `${host}${path}`);
 			}

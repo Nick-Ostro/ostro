@@ -11,9 +11,9 @@ function render(theme, options = {}) {
 	return renderEmail({ ...base, newsletter: { name: "Field notes", postalAddress: "1 Main St", ...(theme && { theme }) }, ...options });
 }
 
-test("MailCheap's theme, saved or not, sends the email it always did: system fonts, no web fonts", () => {
+test("Ostro's theme, saved or not, sends the email it always did: system fonts, no web fonts", () => {
 	const plain = render(null);
-	assert.equal(render({ preset: "mailcheap" }).html, plain.html);
+	assert.equal(render({ preset: "ostro" }).html, plain.html);
 	assert.doesNotMatch(plain.html, /@font-face|\[if mso\]/);
 	assert.match(plain.html, /font-family:-apple-system,BlinkMacSystemFont,'Segoe UI'/);
 	assert.match(plain.html, /<div class="email-box" style="margin:24px 0;padding:24px 24px 8px;border-radius:12px;background:#f4f4f5;">/);
@@ -39,7 +39,7 @@ test("emails are written in the theme's light colors, and mail apps in dark mode
 	assert.match(dark, /^\.email-page \{ background: #0d1017 !important; \}$/m);
 	assert.match(dark, /^\.email-button, \.email-button a \{ background: #c4f25c !important; color: #0a0a0a !important; \}$/m);
 	assert.match(dark, /^\.body a \{ color: #c4f25c; \}$/m);
-	assert.match(render(null).html, /^\.email-page \{ background: #0a0a0a !important; \}$/m, "MailCheap's own dark colors");
+	assert.match(render(null).html, /^\.email-page \{ background: #0a0a0a !important; \}$/m, "Ostro's own dark colors");
 	const block = '<div data-html-block=""><p style="color:#123456;">Block</p></div>';
 	assert.ok(renderEmail({ ...base, markdown: block, newsletter: { name: "N", theme: { preset: "midnight" } } }).html.includes(block), "an HTML block keeps its colors");
 });
@@ -54,7 +54,7 @@ test("previews show an email as a mail app in light mode does, and the customize
 
 test("an email on the left sits there on a wider screen, and nothing else about it changes", () => {
 	const centered = render(null);
-	const left = render({ preset: "mailcheap", emailAlign: "left" });
+	const left = render({ preset: "ostro", emailAlign: "left" });
 	const column = '<tr><td align="center" style="padding:32px 20px;">\n<table role="presentation" class="email-text" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;';
 	assert.ok(centered.html.includes(column));
 	assert.equal(left.html, centered.html.replace(column, column.replace('align="center"', 'align="left"')));

@@ -3,7 +3,7 @@ import { DOC_PAGES } from "@/lib/docs/llms";
 import { HELP_PATH, getHelpArticles, getHelpHref } from "@/lib/help";
 import { siteExtensions } from "@/lib/site-extensions";
 
-// The app domain's pages: the docs, the help center, and on MailCheap Cloud its marketing site's. Archive hosts get
+// The app domain's pages: the docs, the help center, and on Ostro its marketing site's. Archive hosts get
 // their own sitemap.xml (proxy.js).
 export default function sitemap() {
 	const appUrl = getAppUrl();

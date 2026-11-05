@@ -136,7 +136,7 @@ test("the Design page's corners, spacing, alignment, heading weight and colors o
 		{ headingWeight: 800 },
 		{ colors: { background: "#101010", text: "#fafafa", accent: "#ff5a1f" } },
 	];
-	for (const preset of ["mailcheap", "garden"]) {
+	for (const preset of ["ostro", "garden"]) {
 		const shown = nodes({ preset });
 		for (const change of changes) assert.deepEqual(nodes({ preset, ...change }), shown, `${preset}, ${JSON.stringify(change)}`);
 	}

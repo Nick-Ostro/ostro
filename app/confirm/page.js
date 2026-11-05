@@ -7,6 +7,7 @@ import { getArchiveUrls } from "@/lib/archive-hosts";
 import { verifyConfirmToken } from "@/lib/confirmation";
 import { connectDb } from "@/lib/db";
 import { findOpenNewsletter } from "@/lib/public-newsletters";
+import LinkSource from "@/components/LinkSource";
 
 // The URL carries the confirmation token: keep it out of search results and referrer headers.
 export const metadata = {
@@ -22,7 +23,7 @@ export default async function ConfirmPage({ searchParams }) {
 	const newsletter = reference ? await getNewsletter(reference.newsletterId) : null;
 
 	return (
-		<main className="flex min-h-dvh items-center justify-center bg-background px-4 py-16">
+		<main className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-16">
 			<StyleTheme theme={newsletter?.theme} />
 			{newsletter ? (
 				<FormConfirm
@@ -37,6 +38,7 @@ export default async function ConfirmPage({ searchParams }) {
 					It may be older than 30 days. Sign up again and use the newest confirmation email.
 				</CardNotice>
 			)}
+			<LinkSource className="mt-6" />
 		</main>
 	);
 }

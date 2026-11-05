@@ -5,7 +5,7 @@ import { switchAccount } from "@/app/join/actions";
 import AvatarNewsletter from "@/components/AvatarNewsletter";
 import ButtonSignout from "@/components/ButtonSignout";
 import FormJoinTeam from "@/components/FormJoinTeam";
-import LogoMailcheap from "@/components/LogoMailcheap";
+import LogoOstro from "@/components/LogoOstro";
 import { Button } from "@/components/ui/button";
 import { isDeletionPending } from "@/lib/account-state";
 import { getCurrentAccount } from "@/lib/auth";
@@ -75,13 +75,13 @@ function Invalid() {
 	return (
 		<main className="flex min-h-dvh items-center justify-center px-4 py-16">
 			<div className="flex w-full max-w-xs flex-col items-center gap-3 text-center animate-enter">
-				<LogoMailcheap className="size-10" />
+				<LogoOstro className="size-10" />
 				<h1 className="text-lg font-semibold tracking-tight">This invitation isn&apos;t valid anymore</h1>
 				<p className="text-sm text-pretty text-muted-foreground">
 					It was used, canceled or it expired. Ask whoever invited you to send a new one.
 				</p>
 				<Button asChild variant="outline" className="mt-2">
-					<Link href="/">Open MailCheap</Link>
+					<Link href="/">Open Ostro</Link>
 				</Button>
 			</div>
 		</main>

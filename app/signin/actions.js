@@ -27,7 +27,7 @@ const DAILY_CODES_PER_EMAIL = { name: "signin-code-email-day", limit: 10, window
 const CHECKS_PER_IP = { name: "signin-check-ip", limit: 30, window: "15 m" };
 const CODE_PATTERN = /^\d{6}$/;
 const CODE_FAILED_MESSAGE = "Couldn't send the code. Try again in a minute.";
-const OAUTH_EXPIRED_MESSAGE = "This sign-in link expired. Go back to the app and connect MailCheap again.";
+const OAUTH_EXPIRED_MESSAGE = "This sign-in link expired. Go back to the app and connect Ostro again.";
 
 // The allowlist and the address's checks come after the rate limits, so the form can't be used to test addresses
 // quickly.
@@ -61,7 +61,7 @@ export async function sendSigninCode(_state, formData) {
 	return { email };
 }
 
-// MailCheap Cloud takes anyone, and codes that bounce cost the reputation every later code goes out on; a self-hosted
+// Ostro takes anyone, and codes that bounce cost the reputation every later code goes out on; a self-hosted
 // server's allowlist already decides who gets one. value: what the email field shows again, to fix.
 async function getAddressProblem(email) {
 	const suggestion = getEmailSuggestion(email);

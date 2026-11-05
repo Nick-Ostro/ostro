@@ -18,7 +18,7 @@ const accountSchema = new mongoose.Schema(
 		currentPeriodStart: { type: Date },
 		currentPeriodEnd: { type: Date },
 		cancelAt: { type: Date },
-		// When MailCheap paused the plan's billing because the account is blocked (lib/billing-pause.js): Stripe keeps the
+		// When Ostro paused the plan's billing because the account is blocked (lib/billing-pause.js): Stripe keeps the
 		// subscription active and voids its renewals until unblocking resumes it. A pause set by hand in Stripe isn't here.
 		billingPausedAt: { type: Date },
 		// While the hourly check ends the plan of an account blocked too long (lib/billing-pause.js): unblocking waits
@@ -99,7 +99,7 @@ const accountSchema = new mongoose.Schema(
 			checklistDismissedAt: { type: Date },
 			checklistFinishedAt: { type: Date },
 		},
-		// The changelog entries, by id, its owner closed the dashboard's what's new card on: MailCheap Cloud's WhatsNew
+		// The changelog entries, by id, its owner closed the dashboard's what's new card on: Ostro's WhatsNew
 		// site extension (components/SiteExtensions.jsx) only lists the others.
 		changelog: {
 			seen: { type: [String], default: undefined },

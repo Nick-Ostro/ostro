@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import ShellBannerPlan from "@/components/ShellBannerPlan";
 import { Button } from "@/components/ui/button";
-import { formatUsd } from "@/lib/format";
+import { formatPrice } from "@/lib/format";
 import { getRecommendedPlanId } from "@/lib/onboarding";
 import { getPlan } from "@/lib/plans";
 
@@ -11,7 +11,7 @@ import { getPlan } from "@/lib/plans";
 export default function BannerPlan({ account, plans }) {
 	const plan = getPlan(getRecommendedPlanId(account, plans));
 	const hasList = Boolean(account.onboarding?.listSize) && account.onboarding.listSize !== "none";
-	const price = `${formatUsd(plan.monthlyPrice)} a month`;
+	const price = `${formatPrice(plan.monthlyPrice)} a month`;
 	const offer = hasList ? `${plan.name} fits your list, at ${price}` : `From ${price}`;
 
 	return (

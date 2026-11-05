@@ -13,8 +13,8 @@ import { cn } from "@/lib/utils";
 const POLL_MS = 2500;
 // A finished import stays on the page this long, unless dismissed.
 const RECENT_MS = 24 * 60 * 60 * 1000;
-const DISMISSED_KEY = "mailcheap:dismissed-imports";
-const DISMISSED_EVENT = "mailcheap:dismissed-imports";
+const DISMISSED_KEY = "ostro:dismissed-imports";
+const DISMISSED_EVENT = "ostro:dismissed-imports";
 
 // The newsletter's imports going on in the background, and the ones that just finished: counts as the rows go in, a
 // toast when one finishes. imports: lib/import-jobs.js toImportView, newest first; the page sends new ones on refresh.

@@ -55,7 +55,7 @@ test("with Redis, each limit has its own limiter, all keeping their name's count
 		const growth = getLimiter({ name: "test-scaled", limit: 1200, window: "1 h" });
 		assert.notEqual(growth, starter, "a bigger plan's limit, never the first one asked for");
 		assert.equal(getLimiter({ name: "test-scaled", limit: 600, window: "1 h" }), starter);
-		assert.equal(starter.prefix, "mailcheap/test-scaled");
+		assert.equal(starter.prefix, "ostro/test-scaled");
 		assert.equal(growth.prefix, starter.prefix);
 	} finally {
 		delete process.env.UPSTASH_REDIS_REST_URL;

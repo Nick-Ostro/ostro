@@ -172,7 +172,7 @@ export default function ContactsPage() {
 			</p>
 			<p>
 				Their country comes from where they signed up or confirmed, or for someone who joined another way, like an import, where
-				they first clicked a link in your emails, and the globe on their page lights it up. MailCheap reads it from their connection,
+				they first clicked a link in your emails, and the globe on their page lights it up. Ostro reads it from their connection,
 				then keeps the country only, never the address. Opens never give one, since inboxes load images through their own servers.
 				{!isCloud() && " On a self-hosted server, countries need Vercel, which names each visitor's country."}
 			</p>
@@ -405,13 +405,13 @@ export default function ContactsPage() {
 					<strong>Unsubscribe</strong> stops every email to them.
 				</li>
 				<li>
-					<strong>Resubscribe</strong> brings back someone who unsubscribed. Do it only when they asked: MailCheap asks you to
+					<strong>Resubscribe</strong> brings back someone who unsubscribed. Do it only when they asked: Ostro asks you to
 					confirm it, and keeps who did it and when. Someone who unsubscribed can&apos;t be marked dormant, so they only come back
 					this way or by signing up again.
 				</li>
 				<li>
 					<strong>Delete contact</strong> removes them with their dates and engagement, and can&apos;t be undone. For someone who
-					unsubscribed, bounced or complained, MailCheap keeps a scrambled trace of the address, so adding it again never emails it.
+					unsubscribed, bounced or complained, Ostro keeps a scrambled trace of the address, so adding it again never emails it.
 					Anyone else can be added again like a new contact.
 				</li>
 			</ul>
@@ -434,12 +434,12 @@ export default function ContactsPage() {
 
 			<h2 id="undeliverable">Addresses no one can reach</h2>
 			<p>
-				When an address hard bounces or turns out to be a spam trap, MailCheap remembers it for every sender: imports and signups
+				When an address hard bounces or turns out to be a spam trap, Ostro remembers it for every sender: imports and signups
 				leave it out, and sends skip it, showing the contact as bounced. A bounced address is remembered for 180 days, a spam trap for
 				good.
 			</p>
 			<p>
-				MailCheap also checks in the background that your contacts&apos; domains can receive email. Contacts on one that can&apos;t show as
+				Ostro also checks in the background that your contacts&apos; domains can receive email. Contacts on one that can&apos;t show as
 				bounced, marked &ldquo;No mail server&rdquo;, and come back on their own once it can.
 				{(isCloud() || isSpamListEnabled()) &&
 					" Contacts on a known spam domain show as bounced, marked \u201cSpam domain\u201d, unless they ever opened or clicked."}{" "}

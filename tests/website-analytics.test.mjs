@@ -53,7 +53,7 @@ src="https://www.facebook.com/tr?id=123456789012345&ev=PageView&noscript=1"
 const IDS = { googleAnalytics: "G-PSW1MY7HB4", googleTagManager: "GTM-ABCDEFGH", metaPixel: "123456789012345" };
 
 // A page's window as the tools see it: the host it's on, the scripts added to its head, and its events.
-function fakeWindow({ hostname = "weekly.mailcheapmail.com", ...fields } = {}) {
+function fakeWindow({ hostname = "weekly.ostromail.com", ...fields } = {}) {
 	const scripts = [];
 	const listeners = new Map();
 	const w = {
@@ -116,7 +116,7 @@ describe("an ID, or the code a tool gives", () => {
 });
 
 describe("what the website loads", () => {
-	const server = { host: "weekly.mailcheapmail.com", sharedDomain: "mailcheapmail.com", appHost: "app.mailcheapmail.com:443" };
+	const server = { host: "weekly.ostromail.com", sharedDomain: "ostromail.com", appHost: "app.ostromail.com:443" };
 
 	test("nothing without a tool, or while the website shares the dashboard's address", () => {
 		assert.equal(getWebsiteAnalytics({ slug: "weekly" }, server), null);
@@ -140,7 +140,7 @@ describe("what the website loads", () => {
 	});
 
 	test("never a host of the shared domain or the app's, whatever the newsletter has", () => {
-		for (const archiveHost of ["mailcheapmail.com", "other.mailcheapmail.com", "app.mailcheapmail.com", "a.app.mailcheapmail.com"]) {
+		for (const archiveHost of ["ostromail.com", "other.ostromail.com", "app.ostromail.com", "a.app.ostromail.com"]) {
 			assert.equal(getWebsiteAnalytics({ slug: "weekly", archiveHost, analytics: IDS }, { ...server, host: archiveHost }).ownDomain, null, archiveHost);
 		}
 	});
@@ -167,7 +167,7 @@ describe("on the website's pages", () => {
 		assert.equal(typeof start["gtm.start"], "number");
 		assert.deepEqual(gtag, [
 			["gtag", "js", "date"],
-			["gtag", "config", "G-PSW1MY7HB4", { cookie_domain: "weekly.mailcheapmail.com" }],
+			["gtag", "config", "G-PSW1MY7HB4", { cookie_domain: "weekly.ostromail.com" }],
 		]);
 		assert.deepEqual(w.fbq.queue.map((call) => [...call]), [["init", "123456789012345"], ["track", "PageView"]]);
 		assert.equal(w._fbq, w.fbq);
@@ -191,11 +191,11 @@ describe("on the website's pages", () => {
 	});
 
 	test("with its own domain live, the same cached page on its shared address stays limited", () => {
-		const { w } = fakeWindow({ hostname: "weekly.mailcheapmail.com" });
+		const { w } = fakeWindow({ hostname: "weekly.ostromail.com" });
 		startWebsiteAnalytics({ ...IDS, ownDomain: "news.example.com" }, w);
 		const [limits] = readDataLayer(w.dataLayer);
 		assert.deepEqual(limits["gtm.allowlist"], ["google"]);
-		assert.deepEqual(readDataLayer(w.dataLayer).at(-1), ["gtag", "config", "G-PSW1MY7HB4", { cookie_domain: "weekly.mailcheapmail.com" }]);
+		assert.deepEqual(readDataLayer(w.dataLayer).at(-1), ["gtag", "config", "G-PSW1MY7HB4", { cookie_domain: "weekly.ostromail.com" }]);
 	});
 
 	test("a tool left out gets nothing, and a pixel already on the page isn't loaded twice", () => {

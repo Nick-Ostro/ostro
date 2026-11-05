@@ -9,7 +9,7 @@ import { activate, addAuthor, as, callApi, catchNotFound, catchRedirect, form, s
 // Each issue goes by email and on the newsletter's website (the default), by email only, or on the website only. An
 // email-only issue never shows on the website and its emails have no Read online link; a web-only one goes on the
 // website without an email, so it has no recipients and uses no plan emails.
-const SHARED_DOMAIN = "mailcheapmail.com";
+const SHARED_DOMAIN = "ostromail.com";
 let app;
 let m;
 

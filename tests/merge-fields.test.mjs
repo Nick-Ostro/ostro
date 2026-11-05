@@ -217,7 +217,7 @@ describe("field tags in sends, tests and previews", () => {
 		const slug = email.split("@")[0];
 		const url = await as(user, () =>
 			catchRedirect(
-				m.newsletters.saveNewsletter(null, form({ name: `${slug} news`, slug, fromEmail: `hello@${slug}.mailcheapmail.com`, postalAddress: "1 Main St, Paris" }))
+				m.newsletters.saveNewsletter(null, form({ name: `${slug} news`, slug, fromEmail: `hello@${slug}.ostromail.com`, postalAddress: "1 Main St, Paris" }))
 			)
 		);
 		user.newsletterId = url.split("/").at(-1);

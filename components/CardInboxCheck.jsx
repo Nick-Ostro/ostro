@@ -11,7 +11,7 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 // The inbox check at the dashboard's bottom right, where the get-started panel was (lib/inbox-check.js): an email from
-// MailCheap to reply to, so its next ones reach the inbox. Closing it, or Done once it's sent, hides it for the open
+// Ostro to reply to, so its next ones reach the inbox. Closing it, or Done once it's sent, hides it for the open
 // newsletter for good.
 export default function CardInboxCheck({ newsletterId }) {
 	const pathname = usePathname();
@@ -51,10 +51,10 @@ export default function CardInboxCheck({ newsletterId }) {
 			>
 				<header className="px-3 pt-2.5 pb-3">
 					<h2 id={titleId} className="pr-8 font-semibold tracking-tight">
-						Get MailCheap&apos;s emails in your inbox
+						Get Ostro&apos;s emails in your inbox
 					</h2>
 					<p className="mt-1 text-sm text-pretty text-muted-foreground">
-						MailCheap only emails you when it matters, like a campaign that needs you or your summary. Never marketing.
+						Ostro only emails you when it matters, like a campaign that needs you or your summary. Never marketing.
 					</p>
 				</header>
 				<ol className="flex flex-col gap-0.5">
@@ -83,7 +83,7 @@ export default function CardInboxCheck({ newsletterId }) {
 						</>
 					) : (
 						<>
-							<StepNext number={1} title="Send yourself an email" description="From MailCheap, to the address you sign in with.">
+							<StepNext number={1} title="Send yourself an email" description="From Ostro, to the address you sign in with.">
 								<Button size="sm" onClick={send} disabled={isSending}>
 									{isSending ? <Loader2 data-icon="inline-start" className="animate-spin" /> : <Mail data-icon="inline-start" />}
 									Send me an email

@@ -55,7 +55,7 @@ async function customer(email, { contacts = 2, isFree = false } = {}) {
 				form({
 					name: `${slug} news`,
 					slug,
-					fromEmail: `hello@${slug}.mailcheapmail.com`,
+					fromEmail: `hello@${slug}.ostromail.com`,
 					postalAddress: "1 Main St, Paris",
 					archiveEnabled: "on",
 					welcomeEnabled: "on",
@@ -124,7 +124,7 @@ function event(user, message, fields) {
 }
 
 function alertsSince(index) {
-	return platformEmails.slice(index).filter(({ subject }) => subject === "[MailCheap] Account blocked");
+	return platformEmails.slice(index).filter(({ subject }) => subject === "[Ostro] Account blocked");
 }
 
 function assertError(response, status, code) {
@@ -209,7 +209,7 @@ describe("what blocks an account", () => {
 			),
 			toOwner.text
 		);
-		assert.ok(!toOwner.text.includes("hello@mailcheap.ai"), "the chat, not email");
+		assert.ok(!toOwner.text.includes("hello@ostro.email"), "the chat, not email");
 	});
 
 	test("over 7 days: 1 complaint does nothing, 2 warn the owner, 3 over 0.3% block, each counted at once", async () => {
@@ -219,12 +219,12 @@ describe("what blocks an account", () => {
 
 		let emailsBefore = platformEmails.length;
 		await event(user, messages[0], { type: "complaint" });
-		assert.deepEqual(subjectsSince(emailsBefore), ["complaints@example.com [MailCheap] Spam complaint"], "only the usual notice");
+		assert.deepEqual(subjectsSince(emailsBefore), ["complaints@example.com [Ostro] Spam complaint"], "only the usual notice");
 
 		emailsBefore = platformEmails.length;
 		await event(user, messages[1], { type: "complaint" });
 		assert.equal((await loadAccount(user)).status, "active", "2 complaints never block");
-		assert.deepEqual(subjectsSince(emailsBefore), ["complaints@example.com [MailCheap] Bounces or complaints are high"]);
+		assert.deepEqual(subjectsSince(emailsBefore), ["complaints@example.com [Ostro] Bounces or complaints are high"]);
 
 		emailsBefore = platformEmails.length;
 		await event(user, messages[2], { type: "complaint" });
@@ -250,7 +250,7 @@ describe("what blocks an account", () => {
 		assert.match(paused.pauseReason, /^Bounce rate of 5.00% on this campaign \(limit 2.50%\)\. Check where these contacts came from before you resume/);
 		assert.equal((await loadCampaign(user, other)).status, "sent");
 		const emails = platformEmails.slice(emailsBefore);
-		assert.deepEqual(emails.map(({ to, subject }) => [to, subject]), [[["campaign-warning@example.com"], "[MailCheap] Campaign paused"]], "no admin email");
+		assert.deepEqual(emails.map(({ to, subject }) => [to, subject]), [[["campaign-warning@example.com"], "[Ostro] Campaign paused"]], "no admin email");
 
 		assert.deepEqual(await as(user, () => m.campaigns.resumeCampaign(warned)), { ok: true });
 		assert.equal(sentCount(await runJobs(user)), 3, "the same rates don't pause it again");
@@ -377,7 +377,7 @@ describe("unblocking", () => {
 		const emailsBefore = platformEmails.length;
 		assert.deepEqual(await as(admin, () => m.admin.unblockAccountAction(String(user.accountId))), { ok: true });
 		assert.equal((await loadCampaign(user, id)).status, "paused");
-		const unblocked = platformEmails.slice(emailsBefore).filter(({ subject }) => subject === "[MailCheap] Account unblocked");
+		const unblocked = platformEmails.slice(emailsBefore).filter(({ subject }) => subject === "[Ostro] Account unblocked");
 		assert.deepEqual(
 			unblocked.map(({ to }) => to),
 			[["unblock@example.com"]],

@@ -297,7 +297,7 @@ describe("warnings through the API", () => {
 		const apiKeys = await import("../app/(app)/api-keys/actions.js");
 		user = await signIn("warnings@example.com");
 		await activate(user);
-		const fields = { name: "Warnings", slug: "warnings", fromName: "Field notes", fromEmail: "hello@warnings.mailcheapmail.com", postalAddress: "1 Main St, Paris" };
+		const fields = { name: "Warnings", slug: "warnings", fromName: "Field notes", fromEmail: "hello@warnings.ostromail.com", postalAddress: "1 Main St, Paris" };
 		user.newsletterId = (await as(user, () => catchRedirect(newsletters.saveNewsletter(null, form(fields))))).split("/").at(-1);
 		await addAuthor(user);
 		user.key = (await as(user, () => apiKeys.createApiKey(null, form({ name: "Agent", level: "full" })))).key;

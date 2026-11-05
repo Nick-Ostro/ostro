@@ -40,7 +40,7 @@ const newsletterSchema = new mongoose.Schema(
 		// then keep working, until the account is purged.
 		pastHosts: { type: [String], default: undefined },
 		// The shared address's sending domain, <slug>.<shared domain>, in the account's tenant at the email
-		// provider, with the DNS records MailCheap published for it on the shared domain (lib/shared-sender.js).
+		// provider, with the DNS records Ostro published for it on the shared domain (lib/shared-sender.js).
 		sharedSender: {
 			domain: { type: String, lowercase: true, trim: true },
 			provider: { type: String },
@@ -126,12 +126,12 @@ const newsletterSchema = new mongoose.Schema(
 			allowedDomains: { type: [String], default: undefined },
 		},
 		// Dashboard helpers its owner closed: ownDomain, the step the own-domain helper suggested (lib/sender-rules.js), and
-		// inboxCheck, when the settings card about getting MailCheap's emails in their inbox went (lib/inbox-check.js).
+		// inboxCheck, when the settings card about getting Ostro's emails in their inbox went (lib/inbox-check.js).
 		dismissedNudges: {
 			ownDomain: { type: String },
 			inboxCheck: { type: Date },
 		},
-		// What MailCheap emails its owner about it, a choice for each kind: summary, how often its summary email comes
+		// What Ostro emails its owner about it, a choice for each kind: summary, how often its summary email comes
 		// (lib/summary.js), weekly while unset.
 		notifications: {
 			summary: { type: String, enum: SUMMARY_FREQUENCIES },
@@ -143,7 +143,7 @@ const newsletterSchema = new mongoose.Schema(
 			at: { type: Date },
 		},
 		// Its get-started panel (lib/get-started.js), closed by its owner or finished: either hides it for good, on every
-		// device. The account's other newsletters keep theirs. themeChosenAt: a theme preset picked, MailCheap's own
+		// device. The account's other newsletters keep theirs. themeChosenAt: a theme preset picked, Ostro's own
 		// included, which does the panel's design step.
 		getStarted: {
 			dismissedAt: { type: Date },

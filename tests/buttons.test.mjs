@@ -55,7 +55,7 @@ describe("what an issue keeps of a button", () => {
 		assert.equal(cleanRichHtml(button("Hi", STORY, "left")), button("Hi", STORY, "left"), "the editor's own markup stays as it is");
 	});
 
-	test("a button or a link keeps the link MailCheap fills in for each reader of the confirmation and last-chance emails, and nothing like it", () => {
+	test("a button or a link keeps the link Ostro fills in for each reader of the confirmation and last-chance emails, and nothing like it", () => {
 		for (const href of ["{{confirm_url}}", "{{keep_url}}"]) {
 			assert.equal(cleanRichHtml(button("Yes", href)), button("Yes", href), href);
 			assert.equal(cleanRichHtml(`<p><a href="${href}">Yes</a></p>`), `<p><a href="${href}">Yes</a></p>`, `${href} in a link`);
@@ -287,7 +287,7 @@ describe("buttons through the API", () => {
 		const apiKeys = await import("../app/(app)/api-keys/actions.js");
 		user = await signIn("buttons@example.com");
 		await activate(user);
-		const fields = { name: "Buttons", slug: "buttons", fromName: "Field notes", fromEmail: "hello@buttons.mailcheapmail.com", postalAddress: "1 Main St, Paris" };
+		const fields = { name: "Buttons", slug: "buttons", fromName: "Field notes", fromEmail: "hello@buttons.ostromail.com", postalAddress: "1 Main St, Paris" };
 		user.newsletterId = (await as(user, () => catchRedirect(newsletters.saveNewsletter(null, form(fields))))).split("/").at(-1);
 		await addAuthor(user);
 		user.key = (await as(user, () => apiKeys.createApiKey(null, form({ name: "Agent", level: "full" })))).key;

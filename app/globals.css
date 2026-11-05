@@ -152,7 +152,7 @@
   input[type="radio"]:not(:disabled) {
     cursor: pointer;
   }
-  /* Search fields clear with MailCheap's own cross (components/InputSearch.jsx). */
+  /* Search fields clear with Ostro's own cross (components/InputSearch.jsx). */
   input[type="search"]::-webkit-search-cancel-button {
     appearance: none;
   }
@@ -210,7 +210,7 @@ html:has([data-campaign-steps]) {
 }
 
 /* The dashboard's bottom right corner. Where SupportChat (components/SiteExtensions.jsx) renders [data-support-chat],
-   MailCheap Cloud's support chat keeps its button there, 54px wide: 14px from the edges under 480px wide, 24px from the
+   Ostro's support chat keeps its button there, 54px wide: 14px from the edges under 480px wide, 24px from the
    right and 20px from the bottom above. The get-started pill, 40px high, and a save bar, 56px high, sit on its center
    line; the pill ends 12px to its left, --chat-clearance from the edge, and so does a save bar that would reach that
    far. Without the chat, the pill takes the corner. */

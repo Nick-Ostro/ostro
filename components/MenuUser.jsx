@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import { ChevronsUpDown, CircleHelp, CreditCard, LogOut, Moon, Sun, UserRound } from "lucide-react";
+import { ChevronsUpDown, CircleHelp, Code, CreditCard, LogOut, Moon, Sun, UserRound } from "lucide-react";
 import { signOut } from "@/app/signin/actions";
 import AvatarUser from "@/components/AvatarUser";
 import { RadioGroupTheme } from "@/components/ButtonThemeToggle";
@@ -19,6 +19,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { askToSignOut } from "@/lib/sign-out";
+import { SOURCE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 // The bottom of the sidebar and of the mobile menu: who's signed in and whether the account sends, with what
@@ -76,6 +77,12 @@ export default function MenuUser({ name, email, image, gravatarHash, status, has
 					<a href="/help" target="_blank" rel="noopener">
 						<CircleHelp />
 						Help
+					</a>
+				</DropdownMenuItem>
+				<DropdownMenuItem asChild>
+					<a href={SOURCE_URL} target="_blank" rel="noopener">
+						<Code />
+						Source code
 					</a>
 				</DropdownMenuItem>
 				<DropdownMenuSub>

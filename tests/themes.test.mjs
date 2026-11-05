@@ -20,9 +20,9 @@ import {
 	resolveTheme,
 } from "../lib/themes.js";
 
-test("a newsletter without a theme has MailCheap's, which changes nothing on its pages", () => {
+test("a newsletter without a theme has Ostro's, which changes nothing on its pages", () => {
 	const resolved = resolveTheme(undefined);
-	assert.equal(resolved.id, "mailcheap");
+	assert.equal(resolved.id, "ostro");
 	assert.equal(resolved.isDefault, true);
 	assert.equal(resolved.isAdaptive, true);
 	assert.deepEqual(getThemeVariables(resolved), {});
@@ -40,7 +40,7 @@ test("only valid changes that differ from the preset are kept, colors in one for
 		spacing: "galactic",
 	});
 	assert.deepEqual(theme, { preset: "broadsheet", lightColors: { text: "#112233" }, fonts: { body: "dm-sans" }, radius: "large" });
-	assert.equal(normalizeTheme({ preset: "unknown" }).preset, "mailcheap");
+	assert.equal(normalizeTheme({ preset: "unknown" }).preset, "ostro");
 	assert.equal(normalizeHexColor("abc"), "#aabbcc");
 	assert.equal(normalizeHexColor("#12345"), null);
 });
@@ -87,7 +87,7 @@ test("a yellow accent too light for text paints buttons and underlines, links st
 	assert.equal(palette.onAccent, "#0a0a0a");
 });
 
-test("Midnight is made for dark mode, with a light palette too, and MailCheap's own colors are the dashboard's", () => {
+test("Midnight is made for dark mode, with a light palette too, and Ostro's own colors are the dashboard's", () => {
 	const midnight = resolveTheme({ preset: "midnight" });
 	assert.equal(midnight.mode, "dark");
 	assert.equal(resolveTheme({ preset: "garden" }).mode, "light");
@@ -99,10 +99,10 @@ test("Midnight is made for dark mode, with a light palette too, and MailCheap's 
 	assert.equal(light["--background"], "#eef1f6");
 	assert.equal(light["color-scheme"], "light");
 	assert.equal(light["--image-backdrop"], "transparent");
-	const accentOnly = getThemeVariables(resolveTheme({ preset: "mailcheap", radius: "none" }));
+	const accentOnly = getThemeVariables(resolveTheme({ preset: "ostro", radius: "none" }));
 	assert.equal(accentOnly["--background"], undefined);
 	assert.equal(accentOnly["--radius"], "0rem");
-	const recolored = getThemeVariables(resolveTheme({ preset: "mailcheap", colors: { accent: "#2563eb" } }));
+	const recolored = getThemeVariables(resolveTheme({ preset: "ostro", colors: { accent: "#2563eb" } }));
 	assert.equal(recolored["--primary"], "#2563eb");
 	assert.equal(recolored["color-scheme"], "light");
 });
@@ -113,7 +113,7 @@ test("a theme's page gets its fonts, Geist excepted since every page loads it", 
 	assert.match(sheet, /src:url\(\/fonts\/newsreader-latin\.woff2\)/);
 	assert.match(sheet, /body\{[^}]*--theme-font-heading:'MC Instrument Serif',Georgia/);
 	assert.match(sheet, /body\{[^}]*font-family:var\(--theme-font-body\)\}/);
-	assert.doesNotMatch(getThemeStyleSheet(resolveTheme({ preset: "mailcheap", colors: { accent: "#2563eb" } })), /@font-face/);
+	assert.doesNotMatch(getThemeStyleSheet(resolveTheme({ preset: "ostro", colors: { accent: "#2563eb" } })), /@font-face/);
 	assert.equal(getFontFaceCss([THEME_FONTS[0], THEME_FONTS[0]]).split("@font-face").length - 1, 2, "one face per subset");
 });
 
@@ -140,11 +140,11 @@ test("the API gives the values in effect and what was changed", () => {
 	});
 });
 
-test("share cards keep their address with MailCheap's colors, and a palette names a new one", () => {
+test("share cards keep their address with Ostro's colors, and a palette names a new one", () => {
 	const issue = { archiveSlug: "hello" };
 	assert.equal(getShareCardUrl({ slug: "notes" }, issue, "https://app.test"), "https://app.test/archive/notes/og?p=hello");
 	assert.equal(
-		getShareCardUrl({ slug: "notes", theme: { preset: "mailcheap", radius: "none" } }, null, "https://app.test"),
+		getShareCardUrl({ slug: "notes", theme: { preset: "ostro", radius: "none" } }, null, "https://app.test"),
 		"https://app.test/archive/notes/og"
 	);
 	assert.equal(
@@ -167,15 +167,15 @@ test("share cards keep their address with MailCheap's colors, and a palette name
 	assert.equal(getShareCardUrl({ slug: "notes" }, issue, "https://app.test", "dark"), "https://app.test/archive/notes/og?p=hello&m=dark");
 });
 
-test("a card in either mode has that mode's colors, MailCheap's own included", () => {
+test("a card in either mode has that mode's colors, Ostro's own included", () => {
 	const garden = resolveTheme({ preset: "garden" });
 	assert.equal(getShareCardColors(garden).background, "#eef1e8");
 	assert.equal(getShareCardColors(garden, "dark").background, "#101914");
 	assert.equal(getShareCardColors(resolveTheme({ preset: "midnight" })).background, "#0d1017", "link previews keep Midnight dark");
-	const mailcheap = resolveTheme(null);
-	assert.equal(getShareCardColors(mailcheap).background, "#ffffff");
-	assert.equal(getShareCardColors(mailcheap, "dark").background, "#0a0a0a");
-	assert.notEqual(getIssueBackground("hello", mailcheap, "dark"), getIssueBackground("hello", mailcheap));
+	const ostro = resolveTheme(null);
+	assert.equal(getShareCardColors(ostro).background, "#ffffff");
+	assert.equal(getShareCardColors(ostro, "dark").background, "#0a0a0a");
+	assert.notEqual(getIssueBackground("hello", ostro, "dark"), getIssueBackground("hello", ostro));
 	assert.match(getIssueBackground("hello", garden, "dark"), /^linear-gradient\(135deg, #1/);
 });
 
@@ -184,7 +184,7 @@ test("a heading font without the chosen weight uses its closest", () => {
 	assert.equal(resolveTheme({ preset: "swiss", fonts: { heading: "syne" }, headingWeight: 800 }).headingWeight, 800);
 });
 
-test("emails keep MailCheap's colors and system fonts, and themes get theirs with Outlook's own", () => {
+test("emails keep Ostro's colors and system fonts, and themes get theirs with Outlook's own", () => {
 	const plain = getEmailTheme(resolveTheme(null));
 	assert.equal(plain.isDefault, true);
 	assert.equal(plain.text, "#27272a");
@@ -210,7 +210,7 @@ test("emails are in a theme's light colors, with its dark ones for mail apps in 
 	assert.equal(garden.background, "#eef1e8");
 	assert.equal(garden.dark.background, "#000000");
 	const plain = getEmailTheme(resolveTheme(null));
-	assert.equal(plain.background, "#ffffff", "MailCheap's own colors in light");
+	assert.equal(plain.background, "#ffffff", "Ostro's own colors in light");
 	assert.equal(plain.dark.background, "#0a0a0a");
 });
 
@@ -224,7 +224,7 @@ test("emails can sit on the left, a choice like the others that the website neve
 	assert.deepEqual(getThemeOutput(left).customized, ["emailAlign"]);
 	assert.equal(getEmailTheme(resolveTheme(null)).align, "center");
 	assert.equal(getEmailTheme(resolveTheme(left)).align, "left");
-	assert.equal(getThemeStyleSheet(resolveTheme({ preset: "mailcheap", emailAlign: "left" })), "", "MailCheap's pages stay as they always were");
+	assert.equal(getThemeStyleSheet(resolveTheme({ preset: "ostro", emailAlign: "left" })), "", "Ostro's pages stay as they always were");
 	assert.equal(getThemeStyleSheet(resolveTheme(left)), getThemeStyleSheet(resolveTheme({ preset: "garden" })));
 });
 
@@ -265,8 +265,8 @@ test("a website's stylesheet has the light palette, then what changes in dark mo
 	assert.match(garden, /\.dark body\{--background:#101914;--foreground:#e1eae3;/);
 	assert.match(garden, /\.dark body\{[^}]*color-scheme:dark/);
 	assert.doesNotMatch(garden.split(".dark body")[1], /--radius|--theme-font/, "dark mode changes colors only");
-	assert.doesNotMatch(getThemeStyleSheet(resolveTheme({ preset: "mailcheap", radius: "none" })), /\.dark/, "MailCheap's own colors follow the page");
-	const branded = getThemeStyleSheet(resolveTheme({ preset: "mailcheap", lightColors: { accent: "#2563eb" } }));
+	assert.doesNotMatch(getThemeStyleSheet(resolveTheme({ preset: "ostro", radius: "none" })), /\.dark/, "Ostro's own colors follow the page");
+	const branded = getThemeStyleSheet(resolveTheme({ preset: "ostro", lightColors: { accent: "#2563eb" } }));
 	assert.match(branded, /body\{--background:#ffffff;[^}]*--primary:#2563eb;/);
 	assert.match(branded, /\.dark body\{--background:#0a0a0a;/);
 	assert.doesNotMatch(branded.split(".dark body")[1], /--primary:/, "the brand blue stands out on the dark page as it is");
@@ -292,12 +292,12 @@ test("a stored theme can't put CSS or markup of its own in a page: only hex colo
 	assert.doesNotMatch(css, /display:none|<\/style>|<script|example\.com|body\{body/);
 });
 
-test("the dashboard's swatches paint each mode's colors, MailCheap's own being the dashboard's", () => {
+test("the dashboard's swatches paint each mode's colors, Ostro's own being the dashboard's", () => {
 	assert.deepEqual(getSwatchColors(resolveTheme({ preset: "swiss" })), {
 		light: { background: "#ffffff", text: "#111111", accent: "#d92b16" },
 		dark: { background: "#0e0e0e", text: "#f2f2f2", accent: "#ff4a2e" },
 	});
-	const mailcheap = getSwatchColors(resolveTheme(null));
-	assert.equal(mailcheap.light.background, "var(--background)");
-	assert.equal(mailcheap.dark.accent, "var(--primary)");
+	const ostro = getSwatchColors(resolveTheme(null));
+	assert.equal(ostro.light.background, "var(--background)");
+	assert.equal(ostro.dark.accent, "var(--primary)");
 });

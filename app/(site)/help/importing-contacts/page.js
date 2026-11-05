@@ -69,7 +69,7 @@ export default function ImportingContactsPage() {
 			</ul>
 			<h2 id="check">Check before you import</h2>
 			<p>
-				Once you pick the file, MailCheap shows the first contacts as they&apos;ll be in your list (email, first name, status, tags
+				Once you pick the file, Ostro shows the first contacts as they&apos;ll be in your list (email, first name, status, tags
 				and fields), with the number of rows. Below, every column shows a few of its values and where they go, in plain words:
 				Email, First name, Status, Signup date, Tags, one of your fields, a new field, or Don&apos;t import.
 			</p>
@@ -79,7 +79,7 @@ export default function ImportingContactsPage() {
 				caption="Checking a file before it's imported"
 			/>
 			<p>
-				Columns MailCheap recognized are folded under Recognized, still yours to change. Under Needs a look are the columns going
+				Columns Ostro recognized are folded under Recognized, still yours to change. Under Needs a look are the columns going
 				into a new field (each custom field, and where readers came from: beehiiv&apos;s acquisition source, channel, campaign and
 				referring URL, as text, a number or a date from its values) and the ones left out, like the platform&apos;s ids, plans,
 				revenue, counters and devices. The first name comes from First Name, first_name, or the first word of a Name column; tags
@@ -130,7 +130,7 @@ export default function ImportingContactsPage() {
 				{(isCloud() || isSpamListEnabled()) && <li>known spam domains, from StopForumSpam&apos;s list;</li>}
 				<li>duplicates in the file, and addresses on domains that can&apos;t receive email;</li>
 				<li>people who unsubscribed, bounced or complained before, even if you deleted them since;</li>
-				<li>addresses MailCheap knows can&apos;t receive email, because they bounced or hit a spam trap for any sender.</li>
+				<li>addresses Ostro knows can&apos;t receive email, because they bounced or hit a spam trap for any sender.</li>
 			</ul>
 			<p>
 				Contacts already in your list keep their status, unless the file gives a stricter one (unsubscribed, bounced or complained),
@@ -152,7 +152,7 @@ export default function ImportingContactsPage() {
 			<p>
 				The others stay out, since your emails wouldn&apos;t reach someone who wants them: misspelled domains, spam traps and spam
 				domains, domains that can&apos;t receive email, and people who unsubscribed, bounced or complained before. Invalid addresses,
-				duplicates and addresses MailCheap knows can&apos;t receive email are only counted. Bringing one back checks it again as
+				duplicates and addresses Ostro knows can&apos;t receive email are only counted. Bringing one back checks it again as
 				adding one contact does, so an address that can&apos;t receive email, or that unsubscribed since, still stays out.
 			</p>
 			<p>

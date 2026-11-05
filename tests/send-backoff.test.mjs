@@ -75,7 +75,7 @@ describe("a domain Gmail rate limits", () => {
 			Array.from({ length: contacts }, (_, index) => ({
 				accountId: user.accountId,
 				newsletterId: send.newsletterId,
-				email: `mailcheap-test-${slug}-${index}@${readersAt}`,
+				email: `ostro-test-${slug}-${index}@${readersAt}`,
 				status: "active",
 				lastSentAt: new Date(Date.now() - 3 * 86_400_000),
 			}))
@@ -159,8 +159,8 @@ describe("a domain Gmail rate limits", () => {
 		near(jobs[0].notBefore * 1000, limitedAt + 6 * HOUR_MS);
 		assert.deepEqual(
 			platformEmails.slice(before.emails).map(({ to, subject }) => [to[0], subject]),
-			[["rate-limited@example.com", "[MailCheap] Campaign paused"]],
-			"MailCheap handles it, so the admins get neither an email nor a Telegram message"
+			[["rate-limited@example.com", "[Ostro] Campaign paused"]],
+			"Ostro handles it, so the admins get neither an email nor a Telegram message"
 		);
 		assert.equal(telegramMessages.length, before.telegram);
 		const alert = await backoffAlert(send);
@@ -287,7 +287,7 @@ describe("a domain Gmail rate limits", () => {
 		const send = await setup("self-hosted-limit@example.com", 400);
 		await runBatches(send.batches.slice(0, 2));
 		const from = published.length;
-		await withEnv({ MAILCHEAP_CLOUD: "" }, () => defer(send, GMAIL_LIMIT));
+		await withEnv({ OSTRO_CLOUD: "" }, () => defer(send, GMAIL_LIMIT));
 		assert.equal((await campaignOf(send)).status, "sending");
 		assert.equal(published.length, from);
 	});

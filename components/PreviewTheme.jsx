@@ -123,7 +123,7 @@ function getDescription(newsletter) {
 }
 
 // React takes standard properties in camelCase; the theme's own are custom properties. A mode asked for is painted
-// whole, MailCheap's own colors included, which otherwise follow the page's.
+// whole, Ostro's own colors included, which otherwise follow the page's.
 function getScopeStyle(theme, mode) {
 	const { "color-scheme": colorScheme, ...variables } = getThemeVariables({ ...theme, isDefault: false, isAdaptive: false }, mode);
 	return { ...variables, colorScheme, fontFamily: variables["--theme-font-body"] ? "var(--theme-font-body)" : undefined };

@@ -135,16 +135,16 @@ describe("which alerts reach Telegram", () => {
 
 describe("the message", () => {
 	test("the app's name in bold, the title, a blank line, then a line each: what happened, what to do, a link", () => {
-		const text = formatTelegramAlert({ title: "Shared addresses paused", lines: ["The DNS helper is at its daily cap.", "", "They wait for room.", "https://mailcheap.ai/admin"] });
-		assert.equal(text, "<b>MailCheap</b> · Shared addresses paused\n\nThe DNS helper is at its daily cap.\nThey wait for room.\nhttps://mailcheap.ai/admin");
-		assert.equal(formatTelegramAlert({ title: "Only a title" }), "<b>MailCheap</b> · Only a title");
-		assert.equal(formatTelegramAlert({ title: "Long", lines: ["x".repeat(2000)] }), `<b>MailCheap</b> · Long\n\n${"x".repeat(500)}`, "under Telegram's 4,096 characters");
+		const text = formatTelegramAlert({ title: "Shared addresses paused", lines: ["The DNS helper is at its daily cap.", "", "They wait for room.", "https://ostro.email/admin"] });
+		assert.equal(text, "<b>Ostro</b> · Shared addresses paused\n\nThe DNS helper is at its daily cap.\nThey wait for room.\nhttps://ostro.email/admin");
+		assert.equal(formatTelegramAlert({ title: "Only a title" }), "<b>Ostro</b> · Only a title");
+		assert.equal(formatTelegramAlert({ title: "Long", lines: ["x".repeat(2000)] }), `<b>Ostro</b> · Long\n\n${"x".repeat(500)}`, "under Telegram's 4,096 characters");
 	});
 
 	test("what anyone else wrote is escaped, so it can't add tags or break Telegram's HTML", () => {
 		assert.equal(escapeTelegramHtml(`<a href="x">&</a>`), `&lt;a href="x"&gt;&amp;&lt;/a&gt;`);
-		const text = formatTelegramAlert({ title: "News <b>&</b> more", lines: ['<a href="https://evil.example">Jane</a> & co', "https://mailcheap.ai/?a=1&b=2"] });
-		assert.equal(text, '<b>MailCheap</b> · News &lt;b&gt;&amp;&lt;/b&gt; more\n\n&lt;a href="https://evil.example"&gt;Jane&lt;/a&gt; &amp; co\nhttps://mailcheap.ai/?a=1&amp;b=2');
+		const text = formatTelegramAlert({ title: "News <b>&</b> more", lines: ['<a href="https://evil.example">Jane</a> & co', "https://ostro.email/?a=1&b=2"] });
+		assert.equal(text, '<b>Ostro</b> · News &lt;b&gt;&amp;&lt;/b&gt; more\n\n&lt;a href="https://evil.example"&gt;Jane&lt;/a&gt; &amp; co\nhttps://ostro.email/?a=1&amp;b=2');
 	});
 });
 
@@ -162,7 +162,7 @@ describe("delivery", () => {
 			await withEnv(env, () => m.alerts.sendAlert({ accountId: null, key: `account-blocked:${ACCOUNT_ID}:${index}`, title: "Account blocked", detail: "By a spam trap." }));
 		}
 		assert.equal(telegramMessages.length, before.telegram);
-		assert.deepEqual(toAdmins(platformEmails.slice(before.emails)).map(({ subject }) => subject), Array(3).fill("[MailCheap] Account blocked"));
+		assert.deepEqual(toAdmins(platformEmails.slice(before.emails)).map(({ subject }) => subject), Array(3).fill("[Ostro] Account blocked"));
 		assert.deepEqual(await withEnv(NO_TELEGRAM, () => m.alerts.announceTelegram()), { skipped: "Telegram isn't set up" });
 	});
 
@@ -178,9 +178,9 @@ describe("delivery", () => {
 			assert.deepEqual(
 				platformEmails.slice(before).map(({ to, subject }) => [to, subject]),
 				[
-					[["inbox@example.org"], "[MailCheap] A paying customer can't send"],
-					[["inbox@example.org"], "[MailCheap] Issue flagged"],
-					[["alert-owner@example.com"], "[MailCheap] Spam complaint"],
+					[["inbox@example.org"], "[Ostro] A paying customer can't send"],
+					[["inbox@example.org"], "[Ostro] Issue flagged"],
+					[["alert-owner@example.com"], "[Ostro] Spam complaint"],
 				]
 			);
 		});
@@ -193,7 +193,7 @@ describe("delivery", () => {
 				accountId: null,
 				key: "shared-sender-failed:format",
 				title: "Shared address not set up",
-				detail: 'news.mailcheapmail.com (account 1): PostShiba answered 422 <b>"taken"</b> & more.',
+				detail: 'news.ostromail.com (account 1): PostShiba answered 422 <b>"taken"</b> & more.',
 				action: "The newsletter's next save or send tries again.",
 				path: "/admin",
 			});
@@ -201,17 +201,17 @@ describe("delivery", () => {
 			assert.equal(sent.length, 1);
 			const { text, ...request } = sent[0];
 			assert.deepEqual(request, { token: TELEGRAM.TELEGRAM_BOT_TOKEN, chat_id: TELEGRAM.TELEGRAM_CHAT_ID, parse_mode: "HTML", link_preview_options: { is_disabled: true } });
-			const lines = ["news.mailcheapmail.com (account 1): PostShiba answered 422 <b>\"taken\"</b> & more.", "The newsletter's next save or send tries again.", "http://localhost:3000/admin"];
-			assert.equal(text, `<b>MailCheap</b> · Shared address not set up\n\n${lines.map(escapeTelegramHtml).join("\n")}`);
+			const lines = ["news.ostromail.com (account 1): PostShiba answered 422 <b>\"taken\"</b> & more.", "The newsletter's next save or send tries again.", "http://localhost:3000/admin"];
+			assert.equal(text, `<b>Ostro</b> · Shared address not set up\n\n${lines.map(escapeTelegramHtml).join("\n")}`);
 			const [email] = toAdmins(platformEmails.slice(before.emails));
-			assert.equal(email.subject, "[MailCheap] Shared address not set up");
+			assert.equal(email.subject, "[Ostro] Shared address not set up");
 			assert.equal(email.text, ["Shared address not set up", ...lines].join("\n"), "the email as it was, with what to do on its own line");
 		});
 	});
 
 	test("the same alert reaches Telegram at most once every 6 hours, two at once included, whatever its email's cooldown", async () => {
 		await withEnv(TELEGRAM, async () => {
-			const alert = { accountId: null, key: "inbound-cap", title: "Forwards from MailCheap's inboxes paused", detail: "Over 200 emails in 24 hours.", cooldownMinutes: 0 };
+			const alert = { accountId: null, key: "inbound-cap", title: "Forwards from Ostro's inboxes paused", detail: "Over 200 emails in 24 hours.", cooldownMinutes: 0 };
 			const before = { telegram: telegramMessages.length, emails: platformEmails.length };
 			await Promise.all([m.alerts.sendAlert(alert), m.alerts.sendAlert(alert)]);
 			await m.alerts.sendAlert(alert);
@@ -266,17 +266,17 @@ describe("delivery", () => {
 			assert.equal(telegramMessages.length, before, "none of them");
 			assert.deepEqual(
 				toAdmins(platformEmails.slice(emails)).map(({ subject }) => subject),
-				["[MailCheap] A deleted account's email signed up again"],
+				["[Ostro] A deleted account's email signed up again"],
 				"the admin who blocked an account knows already"
 			);
-			assert.ok(platformEmails.slice(emails).some(({ to, subject }) => to.includes("blocked-by-hand@example.com") && subject === "[MailCheap] Account blocked"), "its owner hears of it");
+			assert.ok(platformEmails.slice(emails).some(({ to, subject }) => to.includes("blocked-by-hand@example.com") && subject === "[Ostro] Account blocked"), "its owner hears of it");
 
 			assert.equal(await m.blocks.blockAccount(user.accountId, { reason: "Complaints over 0.3%", by: "rates" }), true);
 			// An admin unblocks it, and it's blocked again within the hour: news again.
 			await m.Account.updateOne({ _id: user.accountId }, { $set: { status: "active" } });
 			assert.equal(await m.blocks.blockAccount(user.accountId, { reason: "Complaints over 0.3% again", by: "rates" }), true);
 			const blocks = telegramMessages.slice(before);
-			assert.deepEqual(firstLines(blocks), ["<b>MailCheap</b> · Account blocked", "<b>MailCheap</b> · Account blocked"]);
+			assert.deepEqual(firstLines(blocks), ["<b>Ostro</b> · Account blocked", "<b>Ostro</b> · Account blocked"]);
 			assert.match(blocks[0].text, new RegExp(`\\n\\nAccount ${user.accountId}, blocked by .+: Complaints over 0\\.3%\\.\\nReview it on the admin page, and unblock it once it's sorted out\\.\\nhttp://localhost:3000/admin$`));
 		});
 	});
@@ -308,7 +308,7 @@ describe("delivery", () => {
 			assert.ok(!log.includes(TELEGRAM.TELEGRAM_BOT_TOKEN) && !log.includes("api.telegram.org"));
 
 			await m.alerts.sendAlert(refused);
-			assert.deepEqual(firstLines(telegramMessages.slice(before.telegram)), ["<b>MailCheap</b> · QStash refused a job"], "a message that didn't go out leaves its turn");
+			assert.deepEqual(firstLines(telegramMessages.slice(before.telegram)), ["<b>Ostro</b> · QStash refused a job"], "a message that didn't go out leaves its turn");
 		});
 	});
 
@@ -320,7 +320,7 @@ describe("delivery", () => {
 			await m.alerts.sendAlertIfRepeated("test-webhook", alert);
 			assert.equal(telegramMessages.length, before);
 			await m.alerts.sendAlertIfRepeated("test-webhook", alert);
-			assert.deepEqual(firstLines(telegramMessages.slice(before)), ["<b>MailCheap</b> · Webhook failing"]);
+			assert.deepEqual(firstLines(telegramMessages.slice(before)), ["<b>Ostro</b> · Webhook failing"]);
 		});
 	});
 
@@ -337,7 +337,7 @@ describe("delivery", () => {
 			assert.deepEqual(await m.alerts.announceTelegram(), { skipped: "already announced" });
 			const sent = telegramMessages.slice(before);
 			assert.equal(sent.length, 1);
-			assert.match(sent[0].text, /^<b>MailCheap<\/b> · Telegram alerts are on\n\nOnly what needs you comes here: account blocks, PostShiba stopping sends, .+\.$/);
+			assert.match(sent[0].text, /^<b>Ostro<\/b> · Telegram alerts are on\n\nOnly what needs you comes here: account blocks, PostShiba stopping sends, .+\.$/);
 		});
 	});
 });
@@ -367,8 +367,8 @@ describe("what alerts", () => {
 				const { postshiba } = await (await call(`Bearer ${CRON_SECRET}`)).json();
 				assert.deepEqual(postshiba.alerts, ["postshiba-suspended", "postshiba-kyc:pending", "postshiba-cap:ClUs01", `tenant-hold:${user.accountId}`]);
 				const titles = ["PostShiba suspended the team", "PostShiba hasn't approved sending", "PostShiba cluster at its cap", "PostShiba holds a tenant"];
-				assert.deepEqual(firstLines(telegramMessages.slice(before.telegram)), titles.map((title) => `<b>MailCheap</b> · ${title}`));
-				assert.deepEqual(toAdmins(platformEmails.slice(before.emails)).map(({ subject }) => subject), titles.map((title) => `[MailCheap] ${title}`));
+				assert.deepEqual(firstLines(telegramMessages.slice(before.telegram)), titles.map((title) => `<b>Ostro</b> · ${title}`));
+				assert.deepEqual(toAdmins(platformEmails.slice(before.emails)).map(({ subject }) => subject), titles.map((title) => `[Ostro] ${title}`));
 
 				await call(`Bearer ${CRON_SECRET}`);
 				assert.equal(telegramMessages.length - before.telegram, 4, "the next hour's check finds the same problems: nothing new");
@@ -384,7 +384,7 @@ describe("what alerts", () => {
 			assert.equal(telegramMessages.length - before.telegram, 4, "an outage waits for the next hour");
 			fake.fail({ method: "GET", path: /\/status$/, status: 401, body: { error: "Invalid token or no user signed in" } });
 			await call(`Bearer ${CRON_SECRET}`);
-			assert.deepEqual(firstLines(telegramMessages.slice(-1)), ["<b>MailCheap</b> · PostShiba refused the status check"]);
+			assert.deepEqual(firstLines(telegramMessages.slice(-1)), ["<b>Ostro</b> · PostShiba refused the status check"]);
 		});
 	});
 
@@ -423,7 +423,7 @@ describe("what alerts", () => {
 					"not a domain no newsletter sends from, an unpaid account's or one still being set up"
 				);
 				const sent = telegramMessages.slice(before.telegram).map(({ text }) => text);
-				assert.deepEqual(firstLines(telegramMessages.slice(before.telegram)), Array(3).fill("<b>MailCheap</b> · A paying customer can't send"));
+				assert.deepEqual(firstLines(telegramMessages.slice(before.telegram)), Array(3).fill("<b>Ostro</b> · A paying customer can't send"));
 				assert.match(
 					sent[0],
 					/\n\nHeld letter \(held-letter\.example\.com, Growth plan\): PostShiba's abuse team holds held-letter\.example\.com \(operator_hold\)\. Its campaigns pause and its signup and test emails fail until it's lifted\.\nAsk PostShiba's support why it's held\.\n/
@@ -461,7 +461,7 @@ describe("what alerts", () => {
 			await assert.rejects(failing(job("/api/jobs/send-batch", 2)), /The database is down/);
 			assert.equal(
 				telegramMessages.at(-1).text,
-				"<b>MailCheap</b> · Background job failing\n\n/api/jobs/send-batch failed 3 times in a row: The database is down.\nAfter its last try QStash keeps it in the dead letter queue: check the logs, then retry it there.\nhttps://console.upstash.com/qstash"
+				"<b>Ostro</b> · Background job failing\n\n/api/jobs/send-batch failed 3 times in a row: The database is down.\nAfter its last try QStash keeps it in the dead letter queue: check the logs, then retry it there.\nhttps://console.upstash.com/qstash"
 			);
 
 			const busy = m.qstashRoute.withQStashSignature(async () => Response.json({ retry: true }, { status: 503 }));
@@ -488,7 +488,7 @@ describe("what alerts", () => {
 			assert.deepEqual(
 				telegramMessages.slice(before).map(({ text }) => text),
 				[
-					"<b>MailCheap</b> · Sign-in codes not sending\n\nRESEND_API_KEY is not set: MailCheap Cloud sends its own emails through Resend only.\nNobody can sign in with a code until it's fixed: check Resend's key, domain and quota.\nhttps://resend.com/emails",
+					"<b>Ostro</b> · Sign-in codes not sending\n\nRESEND_API_KEY is not set: Ostro sends its own emails through Resend only.\nNobody can sign in with a code until it's fixed: check Resend's key, domain and quota.\nhttps://resend.com/emails",
 				]
 			);
 		});
@@ -508,19 +508,19 @@ describe("what alerts", () => {
 					await save(user, slug);
 				}
 			});
-			assert.deepEqual(firstLines(telegramMessages.slice(before.telegram)), ["<b>MailCheap</b> · DNS helper at its daily cap"], "once for both");
-			assert.deepEqual(toAdmins(platformEmails.slice(before.emails)).map(({ subject }) => subject), ["[MailCheap] DNS helper at its daily cap"]);
+			assert.deepEqual(firstLines(telegramMessages.slice(before.telegram)), ["<b>Ostro</b> · DNS helper at its daily cap"], "once for both");
+			assert.deepEqual(toAdmins(platformEmails.slice(before.emails)).map(({ subject }) => subject), ["[Ostro] DNS helper at its daily cap"]);
 			const waiting = (await m.Alert.find({ accountId: null, key: /^shared-sender-waiting:/ }).lean()).map(({ occurrences }) => occurrences.at(-1));
-			for (const domain of ["dns-cap.mailcheapmail.com", "dns-cap-two.mailcheapmail.com"]) {
+			for (const domain of ["dns-cap.ostromail.com", "dns-cap-two.ostromail.com"]) {
 				const occurrence = waiting.find(({ detail }) => detail.startsWith(`${domain} `));
 				assert.deepEqual([occurrence?.emailed, occurrence?.telegram], [false, false], `${domain} named on the admin page`);
 			}
 
 			await quietly(async () => {
-				failNextPublish({ status: 403, message: "CNAME dns-own.mailcheapmail.com isn't a shared address record of dns-own", helperProblem: null });
+				failNextPublish({ status: 403, message: "CNAME dns-own.ostromail.com isn't a shared address record of dns-own", helperProblem: null });
 				await save(third, "dns-own");
 			});
-			assert.deepEqual(firstLines(telegramMessages.slice(-1)), ["<b>MailCheap</b> · Shared address not set up"], "a slug's own problem reaches Telegram itself");
+			assert.deepEqual(firstLines(telegramMessages.slice(-1)), ["<b>Ostro</b> · Shared address not set up"], "a slug's own problem reaches Telegram itself");
 		});
 	});
 
@@ -532,7 +532,7 @@ describe("what alerts", () => {
 			[502, { error: "vercel_failed", message: "Vercel answered POST with 403: Not authorized" }, "down"],
 			[503, { error: "not_configured", message: "The DNS helper has no Vercel token yet" }, "down"],
 			[404, "The page could not be found", "down"],
-			[403, { error: "refused", message: "www is MailCheap's own" }, null],
+			[403, { error: "refused", message: "www is Ostro's own" }, null],
 		];
 		const fetch = globalThis.fetch;
 		try {

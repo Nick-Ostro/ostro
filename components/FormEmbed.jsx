@@ -217,7 +217,7 @@ function PreviewSignupForm({ newsletter, settings }) {
 
 	useEffect(() => {
 		function onMessage(event) {
-			if (event.source !== frameRef.current?.contentWindow || event.data?.type !== "mailcheap:height") return;
+			if (event.source !== frameRef.current?.contentWindow || event.data?.type !== "ostro:height") return;
 			if (event.data.height > 0) setHeight(Math.ceil(event.data.height));
 		}
 		window.addEventListener("message", onMessage);

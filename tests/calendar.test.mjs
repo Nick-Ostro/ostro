@@ -6,7 +6,7 @@ import CalendarMonth from "../components/CalendarMonth.jsx";
 import InputDate from "../components/InputDate.jsx";
 import { fromDayKey, moveDay, toDayKey } from "../lib/calendar.js";
 
-// Date fields pick a day on MailCheap's calendar instead of the browser's date input, and still take and send the
+// Date fields pick a day on Ostro's calendar instead of the browser's date input, and still take and send the
 // YYYY-MM-DD keys that contacts' fields, segments and free plans read.
 
 test("a day key names one real day, and comes back the same", () => {

@@ -20,7 +20,7 @@ const domainSchema = new mongoose.Schema(
 		records: [{ _id: false, purpose: String, type: { type: String }, name: String, value: String }],
 		// The DMARC record found on the domain, or on the closest parent with one (lib/dmarc-rules.js).
 		dmarc: { status: { type: String }, host: { type: String } },
-		// MailCheap's own last look at the records (lib/domain-dns.js): each one proxied, different or missing. Any of
+		// Ostro's own last look at the records (lib/domain-dns.js): each one proxied, different or missing. Any of
 		// them stops a verified domain from sending, whatever the provider says.
 		dns: {
 			checkedAt: { type: Date },

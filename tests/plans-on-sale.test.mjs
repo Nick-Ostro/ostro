@@ -4,9 +4,9 @@ import { createElement } from "react";
 import { prerenderToNodeStream } from "react-dom/static";
 import { activate, as, callApi, catchRedirect, form, listPlanPrices, mockStripe, readLookupKeys, signIn, startTestApp } from "./helpers/app.mjs";
 
-// Which plans MailCheap offers comes from Stripe: a plan shows on the pricing pages, the paywall and billing, and can be
+// Which plans Ostro offers comes from Stripe: a plan shows on the pricing pages, the paywall and billing, and can be
 // picked, only once Stripe has both of its prices at lib/plans.js's amounts. This Stripe starts with the five plans
-// MailCheap had before Ultra, then Ultra's prices arrive. The tests run in order: lib/stripe.js keeps what it read.
+// Ostro had before Ultra, then Ultra's prices arrive. The tests run in order: lib/stripe.js keeps what it read.
 let app;
 let m;
 let calls;
@@ -17,7 +17,7 @@ async function stripeApi({ method, path, query, body }) {
 	if (stripeState === "down") return { status: 400, error: { type: "invalid_request_error", message: "Stripe is having a bad day" } };
 	if (method === "GET" && path === "/v1/prices") {
 		const list = await listPlanPrices(query);
-		return { ...list, data: list.data.filter(({ lookup_key }) => stripeState === "with ultra" || !lookup_key.startsWith("mailcheap_ultra_")) };
+		return { ...list, data: list.data.filter(({ lookup_key }) => stripeState === "with ultra" || !lookup_key.startsWith("ostro_ultra_")) };
 	}
 	if (method === "POST" && path === "/v1/checkout/sessions") return { id: "cs_sale", object: "checkout.session", url: "https://checkout.stripe.com/c/pay/cs_sale" };
 	return { status: 404, error: { type: "invalid_request_error", message: `No mock for ${method} ${path}` } };
@@ -81,7 +81,7 @@ describe("Ultra without its prices in Stripe", () => {
 		assert.deepEqual(plans.map(({ id }) => id), ["starter", "growth", "pro", "scale", "max"]);
 		assert.deepEqual(
 			priceLists().flatMap(({ query }) => readLookupKeys(query)),
-			m.plans.PLANS.flatMap(({ id }) => [`mailcheap_${id}_monthly`, `mailcheap_${id}_yearly`]),
+			m.plans.PLANS.flatMap(({ id }) => [`ostro_${id}_monthly`, `ostro_${id}_yearly`]),
 			"every plan's two prices"
 		);
 		assert.equal(priceLists().length, 2, "Stripe takes 10 lookup keys a request: two for all twelve");
@@ -176,6 +176,6 @@ describe("Ultra with its prices in Stripe", () => {
 
 		const buyer = await signIn("ultra-buyer@example.com");
 		assert.equal(await checkout(buyer, "ultra"), "https://checkout.stripe.com/c/pay/cs_sale");
-		assert.equal(calls.findLast(({ path }) => path === "/v1/checkout/sessions").body.get("line_items[0][price]"), "price_mailcheap_ultra_yearly");
+		assert.equal(calls.findLast(({ path }) => path === "/v1/checkout/sessions").body.get("line_items[0][price]"), "price_ostro_ultra_yearly");
 	});
 });

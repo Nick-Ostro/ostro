@@ -137,10 +137,10 @@ describe("slugs", () => {
 		assert.deepEqual(await callTool(user.key, "update_newsletter", { id: user.newsletterId, slug: "slug-e" }), { error: { code: "rate_limited", message: limited } });
 
 		const newsletter = await m.Newsletter.findOne({ accountId: user.accountId, _id: user.newsletterId }).lean();
-		assert.deepEqual([newsletter.slug, newsletter.fromEmail, newsletter.sharedSender.domain], ["slug-d", "hello@slug-d.mailcheapmail.com", "slug-d.mailcheapmail.com"]);
+		assert.deepEqual([newsletter.slug, newsletter.fromEmail, newsletter.sharedSender.domain], ["slug-d", "hello@slug-d.ostromail.com", "slug-d.ostromail.com"]);
 		for (const slug of ["slug-a", "slug-b", "slug-c"]) {
-			assert.equal(state.identities.has(`${slug}.mailcheapmail.com`), false, slug);
-			assert.ok(![...dnsRecords.values()].some(({ name }) => name.endsWith(`${slug}.mailcheapmail.com`)), slug);
+			assert.equal(state.identities.has(`${slug}.ostromail.com`), false, slug);
+			assert.ok(![...dnsRecords.values()].some(({ name }) => name.endsWith(`${slug}.ostromail.com`)), slug);
 		}
 
 		assert.equal((await save({ slug: "slug-d", name: "Renamed" })).ok, true, "a save that keeps the slug doesn't count");

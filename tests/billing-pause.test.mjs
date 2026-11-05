@@ -48,7 +48,7 @@ function subscriptionFor(id, status) {
 				{
 					id: "si_1",
 					object: "subscription_item",
-					price: { id: "price_1", object: "price", lookup_key: "mailcheap_starter_monthly" },
+					price: { id: "price_1", object: "price", lookup_key: "ostro_starter_monthly" },
 					current_period_start: start,
 					current_period_end: start + 30 * 86_400,
 				},
@@ -122,7 +122,7 @@ async function customer(email) {
 		catchRedirect(
 			m.newsletters.saveNewsletter(
 				null,
-				form({ name: `${slug} news`, slug, fromEmail: `hello@${slug}.mailcheapmail.com`, postalAddress: "1 Main St, Paris", archiveEnabled: "on" })
+				form({ name: `${slug} news`, slug, fromEmail: `hello@${slug}.ostromail.com`, postalAddress: "1 Main St, Paris", archiveEnabled: "on" })
 			)
 		)
 	);
@@ -188,12 +188,12 @@ describe("blocking", () => {
 		assert.ok(await m.archive.getArchiveNewsletter(user.slug), "and so does the website");
 
 		const planEnds = formatDate(new Date(account.billingPausedAt.getTime() + 30 * DAY_MS));
-		const [toOwner] = emailsTo(emailsBefore, "paused-billing@example.com", "[MailCheap] Account blocked");
+		const [toOwner] = emailsTo(emailsBefore, "paused-billing@example.com", "[Ostro] Account blocked");
 		assert.ok(
 			toOwner.text.includes(`and imports and changes are off. Your plan isn't billed while it's blocked, and ends on ${planEnds} if it's still blocked then. Chat with us to unblock it.`),
 			toOwner.text
 		);
-		const [toAdmins] = emailsTo(emailsBefore, "admin@example.com", "[MailCheap] Account blocked");
+		const [toAdmins] = emailsTo(emailsBefore, "admin@example.com", "[Ostro] Account blocked");
 		assert.ok(toAdmins.text.includes(`(limit 0.30%). Its plan isn't billed until it's unblocked, and ends on ${planEnds} if it's still blocked.`), toAdmins.text);
 
 		assert.deepEqual(getPlanDetails(account), ["$19 per month", "Not billed while blocked", `Ends ${planEnds} unless unblocked`]);
@@ -224,7 +224,7 @@ describe("blocking", () => {
 					{
 						id: "si_1",
 						object: "subscription_item",
-						price: { id: "price_1", object: "price", lookup_key: "mailcheap_starter_monthly" },
+						price: { id: "price_1", object: "price", lookup_key: "ostro_starter_monthly" },
 						current_period_start: start,
 						current_period_end: start + 30 * 86_400,
 					},
@@ -237,7 +237,7 @@ describe("blocking", () => {
 
 	test("a self-hosted server has no billing to pause", async () => {
 		const user = await customer("self-hosted-block@example.com");
-		await withEnv({ MAILCHEAP_CLOUD: "" }, () => block(user));
+		await withEnv({ OSTRO_CLOUD: "" }, () => block(user));
 		assert.deepEqual(requestsFor(user), []);
 		assert.equal((await loadAccount(user)).billingPausedAt, undefined);
 	});
@@ -250,9 +250,9 @@ describe("blocking", () => {
 		stripe.isDown = false;
 		const account = await loadAccount(user);
 		assert.deepEqual([account.status, account.billingPausedAt], ["paused", undefined]);
-		const [toOwner] = emailsTo(emailsBefore, "stripe-down@example.com", "[MailCheap] Account blocked");
+		const [toOwner] = emailsTo(emailsBefore, "stripe-down@example.com", "[Ostro] Account blocked");
 		assert.doesNotMatch(toOwner.text, /isn't billed/, "the owner is told only what happened");
-		const [failed] = emailsTo(emailsBefore, "admin@example.com", "[MailCheap] Blocked account still billed");
+		const [failed] = emailsTo(emailsBefore, "admin@example.com", "[Ostro] Blocked account still billed");
 		assert.match(failed.text, new RegExp(`Account ${user.accountId} is blocked, but Stripe didn't pause its plan's billing: Stripe is down`));
 
 		const response = await withEnv({ CRON_SECRET }, () =>
@@ -276,7 +276,7 @@ describe("unblocking", () => {
 		const account = await loadAccount(user);
 		assert.deepEqual([account.status, account.billingPausedAt], ["active", undefined]);
 		const renewal = account.currentPeriodEnd.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-		const [toOwner] = emailsTo(emailsBefore, "resumed@example.com", "[MailCheap] Account unblocked");
+		const [toOwner] = emailsTo(emailsBefore, "resumed@example.com", "[Ostro] Account unblocked");
 		assert.ok(toOwner.text.startsWith(`Account unblocked\nYour account can send again. Your plan is billed again from its renewal on ${renewal}.\nhttp://localhost:3000/`), toOwner.text);
 		assert.deepEqual(getPlanDetails(account), ["$19 per month", `Renews ${renewal}`]);
 	});
@@ -293,7 +293,7 @@ describe("unblocking", () => {
 		const sub = `sub_${user.accountId}`;
 		assert.deepEqual(requestsFor(user), [`POST /v1/subscriptions/${sub} pause_collection=`, `POST /v1/subscriptions/${sub} billing_cycle_anchor=now&proration_behavior=none`]);
 		assert.equal(stripe.requests.at(-1).headers.get("idempotency-key"), `restart-${sub}-${billingPausedAt.getTime()}`, "the same restart is never charged twice");
-		const [toOwner] = emailsTo(emailsBefore, "restarted@example.com", "[MailCheap] Account unblocked");
+		const [toOwner] = emailsTo(emailsBefore, "restarted@example.com", "[Ostro] Account unblocked");
 		assert.match(toOwner.text, /Your account can send again\. Your plan starts a new month today, billed now\./);
 
 		stripe.requests.length = 0;
@@ -311,7 +311,7 @@ describe("unblocking", () => {
 		assert.equal(await m.blocks.unblockAccount(user.accountId), true);
 		assert.deepEqual(requestsFor(user), []);
 		assert.equal((await loadAccount(user)).billingPausedAt, undefined);
-		const [toOwner] = emailsTo(emailsBefore, "canceled-while-blocked@example.com", "[MailCheap] Account unblocked");
+		const [toOwner] = emailsTo(emailsBefore, "canceled-while-blocked@example.com", "[Ostro] Account unblocked");
 		assert.doesNotMatch(toOwner.text, /billed/);
 	});
 });
@@ -370,14 +370,14 @@ describe("30 days blocked", () => {
 		assert.equal(m.state.hasActiveSubscription(account), false);
 		assert.ok(!(await m.archive.getArchiveNewsletter(user.slug)), "the website goes offline, like any plan's that ended");
 
-		const [toOwner] = emailsTo(emailsBefore, "blocked-for-good@example.com", "[MailCheap] Your plan ended");
+		const [toOwner] = emailsTo(emailsBefore, "blocked-for-good@example.com", "[Ostro] Your plan ended");
 		assert.ok(
 			toOwner.text.includes(
 				"Your account has been blocked for 30 days, so we ended its plan, which wasn't billed meanwhile. Your newsletters, contacts and campaigns are kept, and you can pick a plan again once it's unblocked. Chat with us to unblock it."
 			),
 			toOwner.text
 		);
-		assert.deepEqual(emailsTo(emailsBefore, "admin@example.com", "[MailCheap] Blocked account's plan ended"), [], "only on the admin page");
+		assert.deepEqual(emailsTo(emailsBefore, "admin@example.com", "[Ostro] Blocked account's plan ended"), [], "only on the admin page");
 		assert.ok(await m.Alert.exists({ key: `blocked-plan-ended:${user.accountId}` }));
 
 		stripe.requests.length = 0;
@@ -426,7 +426,7 @@ describe("30 days blocked", () => {
 		assert.deepEqual(requestsFor(user), [`GET /v1/subscriptions/sub_${user.accountId}`]);
 		const account = await loadAccount(user);
 		assert.deepEqual([account.subscriptionStatus, account.billingPausedAt], ["canceled", undefined]);
-		assert.deepEqual(emailsTo(emailsBefore, "ended-in-stripe@example.com", "[MailCheap] Your plan ended"), []);
+		assert.deepEqual(emailsTo(emailsBefore, "ended-in-stripe@example.com", "[Ostro] Your plan ended"), []);
 	});
 
 	test("Stripe failing reaches the admins, and the next hour ends it", async () => {
@@ -438,7 +438,7 @@ describe("30 days blocked", () => {
 
 		await quietly(() => m.pause.reconcileBillingPauses());
 		stripe.isDown = false;
-		const [failed] = emailsTo(emailsBefore, "admin@example.com", "[MailCheap] Blocked account's plan not ended");
+		const [failed] = emailsTo(emailsBefore, "admin@example.com", "[Ostro] Blocked account's plan not ended");
 		assert.ok(failed.text.includes(`Account ${user.accountId} was blocked 30 days ago, but Stripe didn't cancel its plan: Stripe is down`), failed.text);
 		const waiting = await loadAccount(user);
 		assert.deepEqual(

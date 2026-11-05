@@ -254,7 +254,7 @@ describe("the contact page and its data", () => {
 		const second = await sendIssue(user, contact, {
 			subject: "Hi {{first_name|there}}",
 			sentAt: new Date(Date.now() - 24 * HOUR),
-			links: ["https://example.com/story?utm_source=mailcheap", "https://example.net/shop"],
+			links: ["https://example.com/story?utm_source=ostro", "https://example.net/shop"],
 		});
 		await m.Message.create({ accountId: user.accountId, newsletterId: user.newsletterId, kind: "test", campaignId: second._id, email: contact.email });
 
@@ -460,7 +460,7 @@ describe("the contact page and its data", () => {
 	});
 
 	test("bounces, complaints, imports, the list cleanup and the never-email list keep their changes too", async () => {
-		const user = await customer("history-causes@example.com", { fromEmail: "hello@history-causes.mailcheapmail.com" });
+		const user = await customer("history-causes@example.com", { fromEmail: "hello@history-causes.ostromail.com" });
 		const make = (email, fields = {}) =>
 			m.Contact.create({ accountId: user.accountId, newsletterId: user.newsletterId, email, status: "active", source: "website", ...fields });
 		const [bounced, complained, imported, skipped] = await Promise.all(

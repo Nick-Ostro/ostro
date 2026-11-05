@@ -6,8 +6,8 @@ import { getPresendChecks } from "../lib/presend-checks.js";
 import { getOwnDomainNudge, isOwnDomainNudgeShown } from "../lib/sender-rules.js";
 import { toSafeNextPath } from "../lib/validation.js";
 
-const sharedDomain = "mailcheap.ai";
-const shared = "hello@field-notes.mailcheap.ai";
+const sharedDomain = "ostro.email";
+const shared = "hello@field-notes.ostro.email";
 const pending = { _id: "65f1c0ffee00000000000001", domain: "pending.dev", verified: false };
 const verified = { _id: "65f1c0ffee00000000000002", domain: "fieldnotes.com", verified: true };
 
@@ -77,7 +77,7 @@ async function customer(email) {
 	const user = await signIn(email);
 	const slug = email.split("@")[0];
 	const url = await as(user, () =>
-		catchRedirect(m.newsletters.saveNewsletter(null, form({ name: `${slug} news`, slug, fromEmail: `hello@${slug}.mailcheapmail.com`, postalAddress: "1 Main St, Paris" })))
+		catchRedirect(m.newsletters.saveNewsletter(null, form({ name: `${slug} news`, slug, fromEmail: `hello@${slug}.ostromail.com`, postalAddress: "1 Main St, Paris" })))
 	);
 	user.newsletterId = url.split("/").at(-1);
 	return user;

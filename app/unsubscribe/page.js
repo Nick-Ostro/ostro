@@ -5,6 +5,7 @@ import { connectDb } from "@/lib/db";
 import { findNewsletterAnywhere } from "@/lib/public-newsletters";
 import { verifyUnsubscribeToken } from "@/lib/unsubscribe";
 import Contact from "@/models/Contact";
+import LinkSource from "@/components/LinkSource";
 
 // The URL carries the unsubscribe token: keep it out of search results and referrer headers.
 export const metadata = {
@@ -25,7 +26,7 @@ export default async function UnsubscribePage({ searchParams }) {
 	const hasForm = view === "confirm" || view === "error";
 
 	return (
-		<main className="flex min-h-dvh items-center justify-center bg-background px-4 py-16">
+		<main className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-16">
 			<StyleTheme theme={subscription?.theme} />
 			<div className="w-full max-w-sm rounded-xl bg-card p-6 text-center shadow-border sm:p-8">
 				<div className="mx-auto flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
@@ -45,6 +46,7 @@ export default async function UnsubscribePage({ searchParams }) {
 					</form>
 				)}
 			</div>
+			<LinkSource className="mt-6" />
 		</main>
 	);
 }

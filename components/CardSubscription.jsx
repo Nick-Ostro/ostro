@@ -1,9 +1,7 @@
 import BadgeStatus from "@/components/BadgeStatus";
 import { getAccountStatus, getBlockedMessage, getBlockedPlanEnd } from "@/lib/account-state";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatPrice } from "@/lib/format";
 import { getAccountPlan, getPrice, isOnFreePlan } from "@/lib/plans";
-
-const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 export default function CardSubscription({ account }) {
 	const plan = getAccountPlan(account);
@@ -28,9 +26,9 @@ export default function CardSubscription({ account }) {
 export function getPlanDetails(account) {
 	const plan = getAccountPlan(account);
 	if (isOnFreePlan(account)) {
-		return [`Free ${plan.name} plan from MailCheap`, account.comp.until && `Ends ${formatDate(account.comp.until)}`].filter(Boolean);
+		return [`Free ${plan.name} plan from Ostro`, account.comp.until && `Ends ${formatDate(account.comp.until)}`].filter(Boolean);
 	}
-	const price = plan && `${usd.format(getPrice(plan, account.interval))} per ${account.interval}`;
+	const price = plan && `${formatPrice(getPrice(plan, account.interval))} per ${account.interval}`;
 	const blockedEnd = getBlockedPlanEnd(account.billingPausedAt);
 	if (blockedEnd && !(account.cancelAt && new Date(account.cancelAt) < blockedEnd)) {
 		return [price, "Not billed while blocked", `Ends ${formatDate(blockedEnd)} unless unblocked`].filter(Boolean);

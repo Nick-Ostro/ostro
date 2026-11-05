@@ -23,7 +23,7 @@ import { addSignup } from "@/lib/signups";
 import { isObjectIdString, isPlainObject, normalizeEmail } from "@/lib/validation";
 
 // Signups from the forms owners paste on their own sites (lib/signup-form.js). The framed form posts JSON from its own
-// page, on MailCheap's host, where Vercel BotID proves a browser sent it; the plain HTML form posts from anywhere and
+// page, on Ostro's host, where Vercel BotID proves a browser sent it; the plain HTML form posts from anywhere and
 // lands on /embed/<id>/done. Scripts can name any site, so the owner's list of sites keeps the form off other sites'
 // pages and turns the plain form off, and scripts meet the other checks: a hidden field, the framed form's signed load
 // time and its one signup per token, BotID, the browser's Origin, and limits per visitor, per address and per

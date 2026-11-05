@@ -10,7 +10,7 @@ import { getPageMetadata } from "@/lib/site";
 export const metadata = getPageMetadata({
 	title: { absolute: `Help · ${APP_NAME}` },
 	description:
-		"How MailCheap works, in plain words: setting up your newsletter, contacts and imports, writing and sending issues, bounces and complaints, plans and your account.",
+		"How Ostro works, in plain words: setting up your newsletter, contacts and imports, writing and sending issues, bounces and complaints, plans and your account.",
 	path: HELP_PATH,
 });
 
@@ -21,7 +21,7 @@ export default function HelpPage() {
 	return (
 		<>
 			<header className="mb-12 max-w-2xl animate-enter">
-				<h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">How MailCheap works</h1>
+				<h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">How Ostro works</h1>
 				<p className="mt-4 text-[17px] leading-8 text-pretty text-muted-foreground">
 					Plain answers about your newsletter, your contacts, writing and sending issues, and your account. Building with the REST API or
 					MCP? See the{" "}
@@ -97,7 +97,7 @@ function getQuestions() {
 	return [
 		isCloud() && {
 			question: "Why do some Gmail readers get my issue the next day?",
-			answer: `Gmail is careful with the first emails from a new domain. So on its first day, MailCheap sends an issue to its first ${formatNumber(SENDER_WARMUP.gmailFirstDay)} Gmail readers, and the others get it the next day. Readers on other inboxes get it right away, and a domain of your own you already send newsletters with isn't held back.`,
+			answer: `Gmail is careful with the first emails from a new domain. So on its first day, Ostro sends an issue to its first ${formatNumber(SENDER_WARMUP.gmailFirstDay)} Gmail readers, and the others get it the next day. Readers on other inboxes get it right away, and a domain of your own you already send newsletters with isn't held back.`,
 			href: getHelpHref("warm-up", "new-domain"),
 		},
 		{
@@ -127,7 +127,7 @@ function getQuestions() {
 		},
 		isCloud() && {
 			question: "What counts as an email?",
-			answer: "Every email MailCheap sends for you: issues, test emails, and welcome and confirmation emails. The count starts over every month, on the day your plan started.",
+			answer: "Every email Ostro sends for you: issues, test emails, and welcome and confirmation emails. The count starts over every month, on the day your plan started.",
 			href: getHelpHref("plans"),
 		},
 	].filter(Boolean);

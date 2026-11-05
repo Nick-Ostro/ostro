@@ -51,7 +51,7 @@ test("each web link in the report shows its website's favicon, anything else a g
 	assert.equal(html.match(/<svg/g)?.length, 1, "the other gets a globe");
 });
 
-test("MailCheap's own unsubscribe, keep and confirm pages aren't the issue's links", () => {
+test("Ostro's own unsubscribe, keep and confirm pages aren't the issue's links", () => {
 	const host = "localhost:3000";
 	assert.equal(isSystemLink("http://localhost:3000/api/unsubscribe?token=abc", host), true);
 	assert.equal(isSystemLink("http://localhost:3000/unsubscribe", host), true);
@@ -116,7 +116,7 @@ describe("clicks per link", () => {
 			catchRedirect(
 				m.newsletters.saveNewsletter(
 					null,
-					form({ name: `${slug} news`, slug, fromEmail: `hello@${slug}.mailcheapmail.com`, postalAddress: "1 Main St, Paris", archiveEnabled: "on" })
+					form({ name: `${slug} news`, slug, fromEmail: `hello@${slug}.ostromail.com`, postalAddress: "1 Main St, Paris", archiveEnabled: "on" })
 				)
 			)
 		);
@@ -168,7 +168,7 @@ describe("clicks per link", () => {
 
 	test("a reader's clicks count once per link and once per issue; repeats only add clicks; scanners count for nothing", async () => {
 		const user = await customer("clickcount@example.com", 3);
-		const story = "https://example.com/story?utm_source=mailcheap";
+		const story = "https://example.com/story?utm_source=ostro";
 		const { id, emails } = await sendIssue(
 			user,
 			`<p><a href="${story}">The story</a> and <a href="https://example.com/shop">the shop</a></p><p><a href="https://example.com/story">Again</a></p>`
@@ -216,7 +216,7 @@ describe("clicks per link", () => {
 		const user = await customer("clickmap@example.com", 2);
 		const { id, emails } = await sendIssue(
 			user,
-			`<p><a href="https://example.com/story?utm_source=mailcheap">The story</a> and <a href="https://example.com/shop">the shop</a></p><p><a href="https://example.com/story">Again</a></p>`
+			`<p><a href="https://example.com/story?utm_source=ostro">The story</a> and <a href="https://example.com/shop">the shop</a></p><p><a href="https://example.com/story">Again</a></p>`
 		);
 		await m.Message.updateMany({ accountId: user.accountId, campaignId: id }, { $set: { sentAt: new Date(Date.now() - 3_600_000) } });
 		const [first, second] = emails.map(trackedLinks);
@@ -224,7 +224,7 @@ describe("clicks per link", () => {
 		assert.match(page, /\/p\//, "its emails link its page");
 		await click(first.get("https://example.com/story"));
 		await click(first.get(page));
-		await click(second.get("https://example.com/story?utm_source=mailcheap"));
+		await click(second.get("https://example.com/story?utm_source=ostro"));
 
 		const campaign = await m.Campaign.findOne({ accountId: user.accountId, _id: id }).lean();
 		const newsletter = await m.Newsletter.findOne({ accountId: user.accountId, _id: campaign.newsletterId }).lean();

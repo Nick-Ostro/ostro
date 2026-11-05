@@ -111,12 +111,12 @@ export function answerTelegram(answer) {
 	telegramAnswer = answer;
 }
 
-// MailCheap Cloud by default; a self-hosted server with { MAILCHEAP_CLOUD: "" }.
+// Ostro by default; a self-hosted server with { OSTRO_CLOUD: "" }.
 export async function startTestApp(env = {}) {
 	const mongo = await startMongo();
 	Object.assign(process.env, {
 		NODE_ENV: "test",
-		MAILCHEAP_CLOUD: "true",
+		OSTRO_CLOUD: "true",
 		MONGODB_URI: mongo.uri,
 		BETTER_AUTH_SECRET: "test-secret-for-integration-tests-0123456789",
 		SUPPRESSION_HASH_KEY: "test-suppression-hash-key-0123456789abcdef",
@@ -125,12 +125,12 @@ export async function startTestApp(env = {}) {
 		SENDING_ENABLED: "true",
 		QSTASH_TOKEN: "qstash-test",
 		SEND_RATE_PER_SECOND: "14",
-		STRIPE_SECRET_KEY: "sk_test_mailcheap",
-		STRIPE_WEBHOOK_SECRET: "whsec_test_mailcheap",
+		STRIPE_SECRET_KEY: "sk_test_ostro",
+		STRIPE_WEBHOOK_SECRET: "whsec_test_ostro",
 		ADMIN_EMAILS: "admin@example.com",
 		BLOB_READ_WRITE_TOKEN: "blob-test",
-		SHARED_DOMAIN: "mailcheapmail.com",
-		ARCHIVE_CNAME_TARGET: "cname.mailcheap.ai",
+		SHARED_DOMAIN: "ostromail.com",
+		ARCHIVE_CNAME_TARGET: "cname.ostro.email",
 		SES_AWS_ACCOUNT_ID: "111122223333",
 		SES_ACCESS_KEY_ID: "test-ses-key-id",
 		SES_SECRET_ACCESS_KEY: "test-ses-secret",
@@ -302,7 +302,7 @@ export async function pointWebsiteDomain(user, host) {
 	const { cnames, txts } = await import("../stubs/dns-check.mjs");
 	const { getOwnershipRecord } = await import("../../lib/website-domain-rules.js");
 	const ownership = getOwnershipRecord(user.accountId, host);
-	cnames.set(host, ["cname.mailcheap.ai"]);
+	cnames.set(host, ["cname.ostro.email"]);
 	txts.set(ownership.name, [[ownership.value]]);
 	return ownership;
 }

@@ -7,7 +7,7 @@ import ButtonClear from "@/components/ButtonClear";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-// A search field with MailCheap's own cross to clear it, where browsers draw theirs (globals.css hides it). value, or
+// A search field with Ostro's own cross to clear it, where browsers draw theirs (globals.css hides it). value, or
 // defaultValue, is its text, and onChange gets it as it's typed, "" once cleared. Cleared in a form, it submits it, so
 // the results follow. isPending turns the magnifier into a spinner. className goes on its box, the rest on the input,
 // like its name and label.

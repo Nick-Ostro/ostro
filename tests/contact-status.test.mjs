@@ -213,7 +213,7 @@ describe("through the API and MCP", () => {
 		assert.equal((await findContact(user, "reader@example.org")).statusChanges.at(-1).via, "mcp");
 	});
 
-	test("an address the account or MailCheap won't email stays out, and its suppression stays as it was", async () => {
+	test("an address the account or Ostro won't email stays out, and its suppression stays as it was", async () => {
 		const user = await customer("suppressed@example.com");
 		await importRows(user, [
 			{ email: "bounced-elsewhere@example.org", status: "unsubscribed" },
@@ -324,7 +324,7 @@ describe("many at once", () => {
 		assert.equal((await findContact(user, "untagged@example.org")).statusChanges.at(-1).via, "mcp");
 	});
 
-	test("an address the account or MailCheap won't email stays dormant, and nothing is left to try again", async () => {
+	test("an address the account or Ostro won't email stays dormant, and nothing is left to try again", async () => {
 		const user = await customer("bulk-suppressed@example.com");
 		await m.Contact.insertMany(
 			["back", "bounced-elsewhere", "spamtrap"].map((name) => ({ accountId: user.accountId, newsletterId: user.newsletterId, email: `${name}@example.org`, status: "dormant" }))

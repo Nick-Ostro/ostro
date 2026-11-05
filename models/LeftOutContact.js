@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { accountScoped } from "../lib/account-scope.js";
 
 // An address an import left out (lib/contact-import.js), with the reason, so its account sees who and can bring back
-// the ones MailCheap only judged from the address (BRING_BACK_REASONS in lib/import-checks.js): those keep the contact
+// the ones Ostro only judged from the address (BRING_BACK_REASONS in lib/import-checks.js): those keep the contact
 // the import would have added. Each expires after a week, like the import's chunks.
 const leftOutContactSchema = new mongoose.Schema(
 	{

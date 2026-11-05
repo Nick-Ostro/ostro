@@ -15,11 +15,11 @@ import { published } from "./stubs/qstash.mjs";
 
 const HOUR_MS = 3_600_000;
 const DAY_MS = 24 * HOUR_MS;
-const CLOUD = { MAILCHEAP_CLOUD: "true" };
+const CLOUD = { OSTRO_CLOUD: "true" };
 const now = new Date("2026-10-13T12:00:00Z");
 const at = (hours) => new Date(now.getTime() + hours * HOUR_MS);
 
-test("a new domain holds Gmail's readers back on its first day only, on MailCheap Cloud", () => {
+test("a new domain holds Gmail's readers back on its first day only, on Ostro", () => {
 	const fresh = getSenderPace({}, { now, env: CLOUD });
 	assert.deepEqual(fresh, {
 		day: 1,
@@ -39,7 +39,7 @@ test("a new domain holds Gmail's readers back on its first day only, on MailChea
 	);
 	assert.equal(getSenderPace({ startedAt: at(-24) }, { now, env: CLOUD }), null, "past its first day");
 	assert.equal(getSenderPace({ days: 0 }, { now, env: CLOUD }), null, "a domain Gmail already knows");
-	assert.equal(getSenderPace({}, { now, env: { MAILCHEAP_CLOUD: "" } }), null, "a self-hosted server");
+	assert.equal(getSenderPace({}, { now, env: { OSTRO_CLOUD: "" } }), null, "a self-hosted server");
 	const waiting = getSenderPace({ startedAt: at(6), firstDay: 351, days: 3, isGradual: true, sentToday: 900 }, { now, env: CLOUD });
 	assert.deepEqual([waiting.waitMs, waiting.day, waiting.sentToday], [6 * HOUR_MS, 1, 0], "a back-off's days wait for it to end");
 	assert.equal(getSenderDayStart(at(-30), now).getTime(), at(-6).getTime(), "its second day began 6 hours ago");
@@ -78,7 +78,7 @@ test("the dashboard says how many Gmail readers get a send today and how many la
 	assert.deepEqual(getGmailDays(restart, 5000), [1000, 2000, 2000], "after the wait, the days of a back-off");
 	assert.deepEqual(getGmailDays(restart, 800), [800], "after the wait, even when they fit its first day");
 	assert.deepEqual(getPace({ sender: { domain: "news.example.org" }, now, env: CLOUD }).sender.domain, "news.example.org");
-	assert.equal(getPace({ env: { MAILCHEAP_CLOUD: "" } }), null, "a self-hosted server sends at full speed");
+	assert.equal(getPace({ env: { OSTRO_CLOUD: "" } }), null, "a self-hosted server sends at full speed");
 	assert.deepEqual([formatPaceTime(0.4), formatPaceTime(0.01), formatPaceTime(27), formatPaceTime(81)], ["24 minutes", "1 minute", "27 hours", "about 3 days"]);
 });
 
@@ -102,7 +102,7 @@ describe("Gmail's readers on a new domain", () => {
 			...(!isNew && { lastSentAt: new Date(Date.now() - 3 * DAY_MS) }),
 		});
 		await m.Contact.insertMany([
-			...Array.from({ length: gmail }, (_, index) => contact(`mailcheap-test-${slug}-${index}@gmail.com`)),
+			...Array.from({ length: gmail }, (_, index) => contact(`ostro-test-${slug}-${index}@gmail.com`)),
 			...Array.from({ length: others }, (_, index) => contact(`reader${index}@${slug}.example.org`)),
 		]);
 		return user;
@@ -226,7 +226,7 @@ describe("Gmail's readers on a new domain", () => {
 		assert.equal((await m.warmup.getSenderWarmup(account, newsletter, "news.old-brand.example")).days, 0, "its parent domain is old");
 		assert.equal((await m.warmup.getSenderWarmup(account, newsletter, "news.fresh-brand.example")).days, 1, "registered 5 days ago");
 		assert.equal((await m.warmup.getSenderWarmup(account, newsletter, "unknown-brand.example")).days, 1, "no registry has it: not proven older");
-		assert.equal((await m.warmup.getSenderWarmup(account, newsletter, "brand-new.mailcheapmail.com")).days, 1, "a new shared subdomain");
+		assert.equal((await m.warmup.getSenderWarmup(account, newsletter, "brand-new.ostromail.com")).days, 1, "a new shared subdomain");
 		mockRdap(() => {
 			throw new Error("asked again");
 		});

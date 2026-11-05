@@ -1,4 +1,4 @@
-// The DNS helper in memory: records MailCheap asked for, by slug, as the helper keeps them on mailcheap.ai, and website
+// The DNS helper in memory: records Ostro asked for, by slug, as the helper keeps them on ostro.email, and website
 // domains on the app's Vercel project.
 export const dnsRecords = new Map();
 let nextId = 0;

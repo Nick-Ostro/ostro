@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 const KIND_LABELS = { alert: "Alert", account: "Blocked account", campaign: "Paused campaign" };
 
-// An item of "Needs a look" in full (lib/admin-alerts.js): what happened and what MailCheap did, who was told, the
+// An item of "Needs a look" in full (lib/admin-alerts.js): what happened and what Ostro did, who was told, the
 // account, newsletter and campaign it's about, and what happened around it. Loaded when it opens.
 export default function DialogAttention({ item, open, onOpenChange, onDismissed }) {
 	const [state, setState] = useState({ status: "loading" });
@@ -103,7 +103,7 @@ function Details({ details, onNavigate }) {
 			{(done || action) && (
 				<div className={cn("grid gap-5", done && action && "sm:grid-cols-2")}>
 					{done && (
-						<Section title="What MailCheap did">
+						<Section title="What Ostro did">
 							<p className="text-pretty">{done}</p>
 						</Section>
 					)}

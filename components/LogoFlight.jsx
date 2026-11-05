@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import LogoMailcheap from "@/components/LogoMailcheap";
+import LogoOstro from "@/components/LogoOstro";
 import { startWordmarkFlights } from "@/lib/wordmark-flight";
 
 // LogoWordmark's plane when it can fly. The loop's numbers are in this box, the plane's own 24 px: offset-path
@@ -25,7 +25,7 @@ export default function LogoFlight() {
 					/>
 				))}
 			</span>
-			<LogoMailcheap className="wordmark-plane" />
+			<LogoOstro className="wordmark-plane" />
 		</span>
 	);
 }
