@@ -271,7 +271,7 @@ describe("the list", () => {
 
 	test("closed, it's hidden for good on every device for its newsletter alone, and the /welcome answers stay", async () => {
 		const user = await signIn("gs-dismiss@example.com");
-		await as(user, () => catchRedirect(m.welcome.completeOnboarding(null, form({ name: "Dismissed", listSize: "growth", listSource: "Substack" }))));
+		await as(user, () => catchRedirect(m.welcome.completeOnboarding(null, form({ name: "Dismissed", listSize: "pro", listSource: "Substack" }))));
 		user.newsletterId = String((await m.Newsletter.findOne({ accountId: user.accountId }).lean())._id);
 		const sibling = await addNewsletter(user, "gs-dismiss-b");
 		assert.equal(await isOpen(user), true);
@@ -281,7 +281,7 @@ describe("the list", () => {
 		assert.ok(getStarted.dismissedAt instanceof Date);
 		assert.equal(await isOpen(user, sibling), true, "the account's other newsletter keeps its list");
 		const account = await loadAccount(user);
-		assert.deepEqual([account.onboarding.listSize, account.onboarding.listSource], ["growth", "Substack"]);
+		assert.deepEqual([account.onboarding.listSize, account.onboarding.listSource], ["pro", "Substack"]);
 		assert.ok(account.onboarding.completedAt);
 		assert.equal(account.onboarding.checklistDismissedAt, undefined);
 

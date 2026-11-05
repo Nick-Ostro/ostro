@@ -21,7 +21,7 @@ before(async () => {
 	};
 	admin = await signIn("ops@example.com");
 	customer = await signIn("customer@example.com");
-	await activate(customer, { plan: "growth" });
+	await activate(customer, { plan: "pro" });
 
 	const db = mongoose.connection.db;
 	const startedAt = new Date(Date.now() - 30 * HOUR_MS);
@@ -84,7 +84,7 @@ test("a campaign's admin page is a 404 to anyone outside ADMIN_EMAILS, signed in
 
 test("the admin sees the owner's report with the account, newsletter and audience, and never a contact", async () => {
 	const markup = renderToStaticMarkup(await as(admin, () => open(campaignId)));
-	for (const text of ["Spring issue", "customer@example.com", "Growth · monthly", "Field notes", "jane@field-notes.example.com", "Everyone · 2 recipients", "Not on the website", "What grew this month"]) {
+	for (const text of ["Spring issue", "customer@example.com", "Pro · monthly", "Field notes", "jane@field-notes.example.com", "Everyone · 2 recipients", "Not on the website", "What grew this month"]) {
 		assert.ok(markup.includes(text), text);
 	}
 	assert.match(markup, />Goes<\/[^>]+>(<[^>]+>)*Email and web</, "where it went: a campaign from before the choice went both ways");

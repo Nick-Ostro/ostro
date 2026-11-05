@@ -11,7 +11,7 @@ import { activate, anonymous, as, catchRedirect, form, listPlanPrices, mockStrip
 // Ostro's marketing site adds to it through the site extensions (tests/marketing/site.test.mjs).
 const ROOT = fileURLToPath(new URL("../", import.meta.url));
 const SITE_URL = "https://ostro.email";
-const CHECKOUT = "/billing/checkout?plan=growth&interval=year";
+const CHECKOUT = "/billing/checkout?plan=pro&interval=year";
 // The companies that send the emails.
 const PROVIDERS = /Amazon|\bAWS\b|\bSES\b|PostShiba|Resend/;
 
@@ -214,7 +214,7 @@ describe("plan buttons", () => {
 		assert.equal(url, CHECKOUT);
 		assert.equal(await as(user, () => catchRedirect(checkout(url))), "https://checkout.stripe.com/c/pay/cs_test_site");
 		const created = calls.find(({ path }) => path === "/v1/checkout/sessions").body;
-		assert.equal(created.get("line_items[0][price]"), "price_ostro_growth_yearly");
+		assert.equal(created.get("line_items[0][price]"), "price_ostro_pro_yearly");
 		assert.equal(created.get("customer_email"), "plan-button@example.com");
 	});
 
@@ -256,7 +256,7 @@ describe("plan buttons", () => {
 
 	test("plan buttons link to checkout with the plan and a billing period", () => {
 		const { getCheckoutPath } = m.plans;
-		assert.equal(getCheckoutPath("growth", "year"), CHECKOUT);
+		assert.equal(getCheckoutPath("pro", "year"), CHECKOUT);
 		assert.equal(getCheckoutPath("starter", "weekly"), "/billing/checkout?plan=starter&interval=month");
 	});
 });
@@ -265,8 +265,8 @@ describe("pricing", () => {
 	test("the price per 1,000 emails is a month's price over the plan's emails, yearly plans spread over 12 months", () => {
 		const { PLANS, getPricePerThousand } = m.plans;
 		const perThousand = (interval) => PLANS.map((plan) => m.format.formatPriceCents(getPricePerThousand(plan, interval)));
-		assert.deepEqual(perThousand("month"), ["$0.95", "$0.52", "$0.40", "$0.30", "$0.17", "$0.16"]);
-		assert.deepEqual(perThousand("year"), ["$0.79", "$0.43", "$0.33", "$0.25", "$0.15", "$0.13"]);
+		assert.deepEqual(perThousand("month"), ["€1.16", "€0.79"]);
+		assert.deepEqual(perThousand("year"), ["€0.97", "€0.66"]);
 	});
 });
 

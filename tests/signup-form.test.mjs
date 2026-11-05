@@ -503,8 +503,8 @@ describe("signups from forms on other sites", () => {
 		const framed = (email) => post(id, { email, token: token(id, "https://site.example") });
 		assert.equal((await framed("past-starter@example.org")).status, 429, "Starter's share is used up");
 
-		await m.Account.updateOne({ _id: user.accountId }, { $set: { plan: "growth" } });
-		assert.equal((await framed("on-growth@example.org")).status, 200, "Growth's is twice as large");
+		await m.Account.updateOne({ _id: user.accountId }, { $set: { plan: "pro" } });
+		assert.equal((await framed("on-pro@example.org")).status, 200, "Pro's is twice as large");
 		for (let index = 0; index < perNewsletterPlain.limit; index++) await isRateLimited({ ...perNewsletterPlain, key: id });
 		const plain = await post(id, { email: "plain@example.org" }, { headers: { origin: "https://site.example" } });
 		assert.equal(plain.status, 429);

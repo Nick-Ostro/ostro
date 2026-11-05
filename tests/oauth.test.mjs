@@ -388,7 +388,7 @@ describe("connecting with the official MCP client", () => {
 		assert.equal(claims.sub, String(users.owner.userId));
 		assert.equal(claims.azp, AGENT.clientId);
 		assert.equal(claims.exp - claims.iat, 3600);
-		assert.deepEqual(claims.scope.split(" ").sort(), ["ostro:full", "offline_access"]);
+		assert.deepEqual(claims.scope.split(" ").sort(), ["offline_access", "ostro:full"]);
 
 		const { tools } = await client.listTools();
 		assert.equal(tools.length, m.registry.ACTIONS.length, "full access: every tool");

@@ -196,9 +196,9 @@ describe("blocking", () => {
 		const [toAdmins] = emailsTo(emailsBefore, "admin@example.com", "[Ostro] Account blocked");
 		assert.ok(toAdmins.text.includes(`(limit 0.30%). Its plan isn't billed until it's unblocked, and ends on ${planEnds} if it's still blocked.`), toAdmins.text);
 
-		assert.deepEqual(getPlanDetails(account), ["$19 per month", "Not billed while blocked", `Ends ${planEnds} unless unblocked`]);
+		assert.deepEqual(getPlanDetails(account), ["€29 per month", "Not billed while blocked", `Ends ${planEnds} unless unblocked`]);
 		const canceledSooner = new Date(Date.now() + 5 * DAY_MS);
-		assert.deepEqual(getPlanDetails({ ...account, cancelAt: canceledSooner }), ["$19 per month", `Ends ${formatDate(canceledSooner)}`], "a cancel that comes first");
+		assert.deepEqual(getPlanDetails({ ...account, cancelAt: canceledSooner }), ["€29 per month", `Ends ${formatDate(canceledSooner)}`], "a cancel that comes first");
 		assert.match(renderToStaticMarkup(createElement(BannerBlocked, { account })), /Nothing is sent or billed until it&#x27;s unblocked/);
 		const billing = await callApi("GET", "/api/v1/billing", { key: user.key });
 		assert.deepEqual([billing.status, billing.body.status, billing.body.isActive, billing.body.billingPaused], [200, "blocked", true, true]);
@@ -278,7 +278,7 @@ describe("unblocking", () => {
 		const renewal = account.currentPeriodEnd.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 		const [toOwner] = emailsTo(emailsBefore, "resumed@example.com", "[Ostro] Account unblocked");
 		assert.ok(toOwner.text.startsWith(`Account unblocked\nYour account can send again. Your plan is billed again from its renewal on ${renewal}.\nhttp://localhost:3000/`), toOwner.text);
-		assert.deepEqual(getPlanDetails(account), ["$19 per month", `Renews ${renewal}`]);
+		assert.deepEqual(getPlanDetails(account), ["€29 per month", `Renews ${renewal}`]);
 	});
 
 	test("after a skipped renewal, the plan starts a new month that day, charged once", async () => {
@@ -457,9 +457,9 @@ describe("plans while blocked", () => {
 		const user = await customer("no-plan-change@example.com");
 		await block(user);
 
-		const refused = await callApi("POST", "/api/v1/billing/change-plan", { key: user.key, body: { plan: "growth" } });
+		const refused = await callApi("POST", "/api/v1/billing/change-plan", { key: user.key, body: { plan: "pro" } });
 		assert.deepEqual([refused.status, refused.body.error.code], [403, "account_blocked"]);
-		assert.equal(await as(user, () => catchRedirect(m.billingActions.choosePlan(form({ plan: "growth", interval: "month" })))), "/billing?interval=month&error=blocked");
+		assert.equal(await as(user, () => catchRedirect(m.billingActions.choosePlan(form({ plan: "pro", interval: "month" })))), "/billing?interval=month&error=blocked");
 		assert.equal(await as(user, () => catchRedirect(m.billingActions.openBillingPortal())), "https://billing.stripe.com/p/session/bps_1");
 		const portal = stripe.requests.find(({ method, path }) => method === "POST" && path === "/v1/billing_portal/configurations").body;
 		const fields = (prefix) => [...portal].filter(([name]) => name.startsWith(prefix)).map(([, value]) => value);
@@ -483,7 +483,7 @@ describe("plans while blocked", () => {
 		assert.equal(stripe.requests[0].body.get("configuration"), "bpc_blocked");
 
 		await m.Account.updateOne({ _id: user.accountId }, { $set: { subscriptionStatus: "canceled" } });
-		const checkout = await as(user, () => catchRedirect(m.checkoutRoute.GET(new Request("http://localhost:3000/billing/checkout?plan=growth&interval=month"))));
+		const checkout = await as(user, () => catchRedirect(m.checkoutRoute.GET(new Request("http://localhost:3000/billing/checkout?plan=pro&interval=month"))));
 		assert.equal(checkout, "/billing?interval=month&error=blocked", "no Checkout either once its plan ended");
 		assert.equal(stripe.requests.some(({ path }) => path === "/v1/checkout/sessions"), false);
 	});

@@ -5,19 +5,19 @@ import { prerenderToNodeStream } from "react-dom/static";
 import { activate, as, callApi, catchRedirect, form, listPlanPrices, mockStripe, readLookupKeys, signIn, startTestApp } from "./helpers/app.mjs";
 
 // Which plans Ostro offers comes from Stripe: a plan shows on the pricing pages, the paywall and billing, and can be
-// picked, only once Stripe has both of its prices at lib/plans.js's amounts. This Stripe starts with the five plans
-// Ostro had before Ultra, then Ultra's prices arrive. The tests run in order: lib/stripe.js keeps what it read.
+// picked, only once Stripe has both of its prices at lib/plans.js's amounts. This Stripe starts with Starter alone,
+// then Pro's prices arrive. The tests run in order: lib/stripe.js keeps what it read.
 let app;
 let m;
 let calls;
-let stripeState = "without ultra";
+let stripeState = "without pro";
 
 async function stripeApi({ method, path, query, body }) {
 	calls.push({ method, path, query, body });
 	if (stripeState === "down") return { status: 400, error: { type: "invalid_request_error", message: "Stripe is having a bad day" } };
 	if (method === "GET" && path === "/v1/prices") {
 		const list = await listPlanPrices(query);
-		return { ...list, data: list.data.filter(({ lookup_key }) => stripeState === "with ultra" || !lookup_key.startsWith("ostro_ultra_")) };
+		return { ...list, data: list.data.filter(({ lookup_key }) => stripeState === "with pro" || !lookup_key.startsWith("ostro_pro_")) };
 	}
 	if (method === "POST" && path === "/v1/checkout/sessions") return { id: "cs_sale", object: "checkout.session", url: "https://checkout.stripe.com/c/pay/cs_sale" };
 	return { status: 404, error: { type: "invalid_request_error", message: `No mock for ${method} ${path}` } };
@@ -75,43 +75,42 @@ beforeEach(() => {
 
 after(() => app?.stop());
 
-describe("Ultra without its prices in Stripe", () => {
+describe("Pro without its prices in Stripe", () => {
 	test("is nowhere: not on the slider, the banner, the recommendation or get_billing, and Checkout refuses it", async () => {
 		const plans = await m.stripe.findPlansOnSale();
-		assert.deepEqual(plans.map(({ id }) => id), ["starter", "growth", "pro", "scale", "max"]);
+		assert.deepEqual(plans.map(({ id }) => id), ["starter"]);
 		assert.deepEqual(
 			priceLists().flatMap(({ query }) => readLookupKeys(query)),
 			m.plans.PLANS.flatMap(({ id }) => [`ostro_${id}_monthly`, `ostro_${id}_yearly`]),
 			"every plan's two prices"
 		);
-		assert.equal(priceLists().length, 2, "Stripe takes 10 lookup keys a request: two for all twelve");
+		assert.equal(priceLists().length, 1, "Stripe takes 10 lookup keys a request: one for all four");
 
-		const pricing = m.pricing.getPricing("ultra", plans);
-		assert.deepEqual(pricing.plans.map(({ id }) => id), ["starter", "growth", "pro", "scale", "max"]);
+		const pricing = m.pricing.getPricing("pro", plans);
+		assert.deepEqual(pricing.plans.map(({ id }) => id), ["starter"]);
 		assert.equal(pricing.initialIndex, 0, "a plan that isn't on sale doesn't start the slider");
 		const slider = await render(m.ListPricing, {});
-		assert.ok(slider.includes("$349") && slider.includes('aria-label="2,000,000 emails a month"'), "Max is the last step");
-		assert.ok(!slider.includes("$799") && !slider.includes('aria-label="5,000,000 emails a month"'), "Ultra isn't a step");
-		assert.equal(slider.includes("More than 2,000,000 emails?"), Boolean(m.siteExtensions.supportChatPath), "past Max, the support chat");
+		assert.ok(slider.includes("€29") && slider.includes('aria-label="25,000 emails a month"'), "Starter is the only step");
+		assert.ok(!slider.includes("€79") && !slider.includes('aria-label="100,000 emails a month"'), "Pro isn't a step");
 
 		const bigList = { onboarding: { listSize: "more" } };
-		assert.equal(m.onboarding.getRecommendedPlanId(bigList, plans), "max", "Over 100,000 gets Max");
-		assert.match(await render(m.BannerPlan, { account: bigList, plans }), /Max fits your list, at \$349 a month/);
+		assert.equal(m.onboarding.getRecommendedPlanId(bigList, plans), "starter", "Over 20,000 gets the largest plan on sale");
+		assert.match(await render(m.BannerPlan, { account: bigList, plans }), /Starter fits your list, at €29 a month/);
 
-		const buyer = await signIn("no-ultra@example.com");
-		assert.equal(await checkout(buyer, "ultra"), "/billing?interval=year", "the plan buttons lead to billing");
-		assert.equal(await as(buyer, () => catchRedirect(m.billing.choosePlan(form({ plan: "ultra", interval: "year" })))), "/billing");
+		const buyer = await signIn("no-pro@example.com");
+		assert.equal(await checkout(buyer, "pro"), "/billing?interval=year", "the plan buttons lead to billing");
+		assert.equal(await as(buyer, () => catchRedirect(m.billing.choosePlan(form({ plan: "pro", interval: "year" })))), "/billing");
 		assert.equal(calls.some(({ path }) => path === "/v1/checkout/sessions"), false, "nothing reached Checkout");
 
-		const paying = await signIn("no-ultra-api@example.com");
+		const paying = await signIn("no-pro-api@example.com");
 		await activate(paying);
 		const { key } = await createKey(paying);
 		const billing = await callApi("GET", "/api/v1/billing", { key });
-		assert.deepEqual(billing.body.plans.map(({ id }) => id), ["starter", "growth", "pro", "scale", "max"]);
-		const change = await callApi("POST", "/api/v1/billing/change-plan", { key, body: { plan: "ultra", interval: "year" } });
+		assert.deepEqual(billing.body.plans.map(({ id }) => id), ["starter"]);
+		const change = await callApi("POST", "/api/v1/billing/change-plan", { key, body: { plan: "pro", interval: "year" } });
 		assert.equal(change.status, 400);
-		assert.deepEqual(change.body.error, { code: "validation_failed", message: "plan: Ultra isn't on sale yet. get_billing lists the plans on sale" });
-		assert.equal(priceLists().length, 2, "Stripe was read once for all of it");
+		assert.deepEqual(change.body.error, { code: "validation_failed", message: "plan: Pro isn't on sale yet. get_billing lists the plans on sale" });
+		assert.equal(priceLists().length, 1, "Stripe was read once for all of it");
 	});
 
 	test("when Stripe can't be read, every plan shows for a minute, and Checkout still refuses a price it can't find", async () => {
@@ -127,7 +126,7 @@ describe("Ultra without its prices in Stripe", () => {
 			assert.equal(priceLists().length, 1);
 
 			const buyer = await signIn("stripe-down@example.com");
-			assert.equal(await checkout(buyer, "ultra"), "/billing?interval=year&error=stripe");
+			assert.equal(await checkout(buyer, "pro"), "/billing?interval=year&error=stripe");
 			assert.equal(calls.some(({ path }) => path === "/v1/checkout/sessions"), false);
 		} finally {
 			console.error = error;
@@ -136,46 +135,40 @@ describe("Ultra without its prices in Stripe", () => {
 	});
 });
 
-describe("Ultra with its prices in Stripe", () => {
-	test("joins the slider as its sixth step within 10 minutes, and its buttons open Checkout", async () => {
-		stripeState = "with ultra";
+describe("Pro with its prices in Stripe", () => {
+	test("joins the slider as its second step within 10 minutes, and its buttons open Checkout", async () => {
+		stripeState = "with pro";
 		const plans = await later(13, () => m.stripe.findPlansOnSale());
-		assert.deepEqual(plans.map(({ id }) => id), ["starter", "growth", "pro", "scale", "max", "ultra"]);
+		assert.deepEqual(plans.map(({ id }) => id), ["starter", "pro"]);
 
-		const { plans: stops, initialIndex } = m.pricing.getPricing("ultra", plans);
-		assert.equal(initialIndex, 5);
+		const { plans: stops, initialIndex } = m.pricing.getPricing("pro", plans);
+		assert.equal(initialIndex, 1);
 		assert.deepEqual(
 			stops.map(({ name, emails, emailsShort, subscribers }) => [name, emails, emailsShort, subscribers]),
 			[
-				["Starter", "20,000", "20K", "10,000"],
-				["Growth", "75,000", "75K", "40,000"],
-				["Pro", "200,000", "200K", "100,000"],
-				["Scale", "500,000", "500K", "250,000"],
-				["Max", "2,000,000", "2M", "1,000,000"],
-				["Ultra", "5,000,000", "5M", "2,500,000"],
+				["Starter", "25,000", "25K", "12,500"],
+				["Pro", "100,000", "100K", "50,000"],
 			]
 		);
-		assert.deepEqual(stops.map(({ prices }) => prices.month.price), ["$19", "$39", "$79", "$149", "$349", "$799"]);
-		assert.deepEqual(stops.map(({ prices }) => prices.year.price), ["$190", "$390", "$790", "$1,490", "$3,490", "$7,990"]);
+		assert.deepEqual(stops.map(({ prices }) => prices.month.price), ["€29", "€79"]);
+		assert.deepEqual(stops.map(({ prices }) => prices.year.price), ["€290", "€790"]);
 		assert.deepEqual(
-			[stops[5].prices.month.perThousand, stops[5].prices.year.perThousand, stops[5].prices.year.monthly],
-			["$0.16", "$0.13", "$665.83"]
+			[stops[1].prices.month.perThousand, stops[1].prices.year.perThousand, stops[1].prices.year.monthly],
+			["€0.79", "€0.66", "€65.83"]
 		);
-		assert.equal(stops[5].prices.year.href, "/billing/checkout?plan=ultra&interval=year");
+		assert.equal(stops[1].prices.year.href, "/billing/checkout?plan=pro&interval=year");
 		const bars = stops.map(({ bar }) => bar);
 		assert.equal(bars.at(-1), 1);
-		assert.ok(bars.every((bar, index) => index === 0 || bar - bars[index - 1] > 0.05), `every bar a step taller: ${bars.join(", ")}`);
-		assert.ok(bars[1] > 0.28, "Growth stands above the shortest bar SliderPricing draws");
+		assert.ok(bars[0] < bars[1], `Pro's bar is taller: ${bars.join(", ")}`);
 
 		const slider = await render(m.ListPricing, {});
-		assert.ok(slider.includes("$799") && slider.includes('aria-label="5,000,000 emails a month"'));
-		assert.equal(slider.includes("More than 5,000,000 emails?"), Boolean(m.siteExtensions.supportChatPath), "past Ultra, the support chat");
+		assert.ok(slider.includes("€79") && slider.includes('aria-label="100,000 emails a month"'));
 		const bigList = { onboarding: { listSize: "more" } };
-		assert.equal(m.onboarding.getRecommendedPlanId(bigList, plans), "max", "Over 100,000 stays on Max, not the largest plan");
-		assert.match(await render(m.BannerPlan, { account: bigList, plans }), /Max fits your list, at \$349 a month/);
+		assert.equal(m.onboarding.getRecommendedPlanId(bigList, plans), "pro", "Over 20,000 gets Pro");
+		assert.match(await render(m.BannerPlan, { account: bigList, plans }), /Pro fits your list, at €79 a month/);
 
-		const buyer = await signIn("ultra-buyer@example.com");
-		assert.equal(await checkout(buyer, "ultra"), "https://checkout.stripe.com/c/pay/cs_sale");
-		assert.equal(calls.findLast(({ path }) => path === "/v1/checkout/sessions").body.get("line_items[0][price]"), "price_ostro_ultra_yearly");
+		const buyer = await signIn("pro-buyer@example.com");
+		assert.equal(await checkout(buyer, "pro"), "https://checkout.stripe.com/c/pay/cs_sale");
+		assert.equal(calls.findLast(({ path }) => path === "/v1/checkout/sessions").body.get("line_items[0][price]"), "price_ostro_pro_yearly");
 	});
 });

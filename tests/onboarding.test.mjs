@@ -61,7 +61,7 @@ describe("/welcome", () => {
 		const user = await signIn("new@example.com");
 		assert.equal(await m.onboarding.needsOnboarding(await loadAccount(user)), true);
 
-		const answers = { name: "Field notes", description: "One idea a week.", fromName: "Jane", listSize: "growth", listSource: "Substack" };
+		const answers = { name: "Field notes", description: "One idea a week.", fromName: "Jane", listSize: "pro", listSource: "Substack" };
 		assert.equal(await welcome(user, answers), "/");
 		const newsletter = await m.Newsletter.findOne({ accountId: user.accountId }).lean();
 		assert.deepEqual(
@@ -70,9 +70,9 @@ describe("/welcome", () => {
 		);
 		assert.deepEqual(getCleanupSettings(newsletter), { enabled: true, issues: 6, days: 180 }, "list cleanup starts on");
 		const account = await loadAccount(user);
-		assert.deepEqual([account.onboarding.listSize, account.onboarding.listSource], ["growth", "Substack"]);
+		assert.deepEqual([account.onboarding.listSize, account.onboarding.listSource], ["pro", "Substack"]);
 		assert.ok(account.onboarding.completedAt);
-		assert.equal(m.onboarding.getRecommendedPlanId(account), "growth", "the paywall starts on the plan for a weekly issue to the list");
+		assert.equal(m.onboarding.getRecommendedPlanId(account), "pro", "the paywall starts on the plan for a weekly issue to the list");
 		assert.equal(await m.onboarding.needsOnboarding(account), false);
 
 		assert.equal(await welcome(user, { name: "Again" }), "/", "sent twice, it only finishes");
@@ -86,7 +86,7 @@ describe("/welcome", () => {
 		const account = await loadAccount(user);
 		assert.equal(account.onboarding.listSource, undefined, "no list, no source");
 		assert.equal(m.onboarding.getRecommendedPlanId(account), "starter");
-		assert.equal(m.onboarding.getRecommendedPlanId({ onboarding: { listSize: "more" } }), "max");
+		assert.equal(m.onboarding.getRecommendedPlanId({ onboarding: { listSize: "more" } }), "pro");
 	});
 
 	test("a name is needed, and answers that aren't choices aren't kept", async () => {
@@ -98,39 +98,27 @@ describe("/welcome", () => {
 
 	test("the list sizes are steps of one issue a week, each suggesting the plan it names", () => {
 		const suggest = (listSize) => m.onboarding.getRecommendedPlanId({ onboarding: { listSize } });
-		// About 4.33 emails per subscriber a month: 15,000 subscribers take 64,950 of Growth's 75,000, 45,000 take 194,850 of
-		// Pro's 200,000 and 100,000 take 433,000 of Scale's 500,000. Starter's 20,000 hold about 4,600, and Under 5,000 stays
-		// on it: most new lists are far smaller. Max's 2,000,000 hold about 460,000, so Over 100,000 starts on it and not on
-		// Ultra, the largest plan.
+		// About 4.33 emails per subscriber a month: Starter's 25,000 hold about 5,700 and Pro's 100,000 about 23,000.
 		assert.deepEqual(
 			m.onboarding.LIST_SIZES.map(({ id, label }) => [label, suggest(id)]),
 			[
 				["Not yet", "starter"],
 				["Under 5,000", "starter"],
-				["5,000 to 15,000", "growth"],
-				["15,000 to 45,000", "pro"],
-				["45,000 to 100,000", "scale"],
-				["Over 100,000", "max"],
+				["5,000 to 20,000", "pro"],
+				["Over 20,000", "pro"],
 			]
 		);
 	});
 
-	test("while Max isn't on sale, Over 100,000 suggests the largest plan that is", () => {
-		const suggestOver = (offSale) =>
-			m.onboarding.getRecommendedPlanId({ onboarding: { listSize: "more" } }, m.plans.PLANS.filter(({ id }) => !offSale.includes(id)));
-		assert.equal(suggestOver(["ultra"]), "max", "Ultra's prices not in yet");
-		assert.equal(suggestOver(["max"]), "ultra");
-		assert.equal(suggestOver(["max", "ultra"]), "scale");
-		const onSale = m.plans.PLANS.filter(({ id }) => !["max", "ultra"].includes(id));
+	test("while Pro isn't on sale, Over 20,000 suggests the largest plan that is", () => {
+		const onSale = m.plans.PLANS.filter(({ id }) => id !== "pro");
 		const suggest = (listSize) => m.onboarding.getRecommendedPlanId({ onboarding: { listSize } }, onSale);
-		assert.deepEqual(["none", "starter", "growth", "pro", "scale", "more"].map(suggest), ["starter", "starter", "growth", "pro", "scale", "scale"]);
+		assert.deepEqual(["none", "starter", "pro", "more"].map(suggest), ["starter", "starter", "starter", "starter"]);
 	});
 
-	test("an answer saved under earlier steps still names its plan, and one that names none starts on the smallest", () => {
+	test("an answer that names no plan starts on the smallest", () => {
 		const suggest = (listSize) => m.onboarding.getRecommendedPlanId({ onboarding: { listSize } });
-		// Accounts keep the id, whatever its label was when they picked it: starter was Under 10,000 for a while.
-		assert.deepEqual(["starter", "growth", "pro", "scale", "more"].map(suggest), ["starter", "growth", "pro", "scale", "max"]);
-		for (const listSize of [undefined, "", "Under 10,000", "enterprise"]) assert.equal(suggest(listSize), "starter", String(listSize));
+		for (const listSize of [undefined, "", "growth", "Under 10,000", "enterprise"]) assert.equal(suggest(listSize), "starter", String(listSize));
 		assert.equal(m.onboarding.getRecommendedPlanId({}), "starter", "an account from before onboarding asked");
 	});
 
@@ -141,14 +129,14 @@ describe("/welcome", () => {
 		assert.equal((await loadAccount(user)).onboarding.listSource, "Somewhere else");
 
 		const earlier = await signIn("from-kit@example.com");
-		assert.equal(await welcome(earlier, { name: "From Kit", listSize: "growth", listSource: "Kit" }), "/");
+		assert.equal(await welcome(earlier, { name: "From Kit", listSize: "pro", listSource: "Kit" }), "/");
 		assert.equal((await loadAccount(earlier)).onboarding.listSource, undefined, "Kit isn't a choice anymore");
 		await m.Account.updateOne({ _id: earlier.accountId }, { $set: { "onboarding.listSource": "Kit" } });
 		await assert.doesNotReject((await m.Account.findById(earlier.accountId)).validate(), "an answer saved before still validates");
 		assert.equal(await welcome(earlier, { name: "From Kit" }), "/", "sent again, it only finishes");
 		const account = await loadAccount(earlier);
 		assert.equal(account.onboarding.listSource, "Kit", "and leaves the saved answer as it was");
-		assert.equal(m.onboarding.getRecommendedPlanId(account), "growth");
+		assert.equal(m.onboarding.getRecommendedPlanId(account), "pro");
 	});
 });
 

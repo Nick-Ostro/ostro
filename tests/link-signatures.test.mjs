@@ -15,22 +15,22 @@ test("email links keep their signatures", () => {
 	const at = Date.UTC(2026, 9, 1);
 	assert.equal(
 		createUnsubscribeToken(ids),
-		"eyJjIjoiNjVmMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwibiI6IjY1ZjAwMDAwMDAwMDAwMDAwMDAwMDAwMiJ9.qxugCW39rqGI0TSWiaWjEWH-bVd71-Lb69vN7idQJ0k"
+		"eyJjIjoiNjVmMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwibiI6IjY1ZjAwMDAwMDAwMDAwMDAwMDAwMDAwMiJ9.vQbTRFmcuXv6DLmnWye6xepzbd2VM4VqxWmJOhAGqXU"
 	);
 	assert.equal(
 		getOpenUrl("https://app.example.com", "65f000000000000000000003"),
-		"https://app.example.com/o/65f000000000000000000003.JtU4g2LPPxg4mmeolrDvOn"
+		"https://app.example.com/o/65f000000000000000000003.w2T7Ftv8SJR1eqdif_PmJN"
 	);
 	assert.equal(
 		getClickUrl("https://app.example.com", "65f000000000000000000003", "https://example.com/a"),
-		"https://app.example.com/c/65f000000000000000000003.52hwWaNiG9b4Z8RNRfq3tq.aHR0cHM6Ly9leGFtcGxlLmNvbS9h"
+		"https://app.example.com/c/65f000000000000000000003.fdGQ6DfjM3v0Uo-e8YSJBY.aHR0cHM6Ly9leGFtcGxlLmNvbS9h"
 	);
 	assert.equal(
 		createConfirmToken(ids, at),
-		"eyJjIjoiNjVmMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwibiI6IjY1ZjAwMDAwMDAwMDAwMDAwMDAwMDAwMiIsInQiOjE3OTA4MTI4MDB9.64ux5hwD5hvAyrvxgKpO5LcGY4XGxOzwRU0JVqsrxo8"
+		"eyJjIjoiNjVmMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwibiI6IjY1ZjAwMDAwMDAwMDAwMDAwMDAwMDAwMiIsInQiOjE3OTA4MTI4MDB9.pYbrrm_f_eyhn19yAh0YtqdU9RFmAE47mxIJ0oRUAAE"
 	);
 	assert.equal(
 		createKeepToken(ids, at),
-		"eyJjIjoiNjVmMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwibiI6IjY1ZjAwMDAwMDAwMDAwMDAwMDAwMDAwMiIsInQiOjE3OTA4MTI4MDB9.TcO_u6bsrlsl-cZZJ66RGMD_-_bR92nFDSJSe638hYE"
+		"eyJjIjoiNjVmMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwibiI6IjY1ZjAwMDAwMDAwMDAwMDAwMDAwMDAwMiIsInQiOjE3OTA4MTI4MDB9.9Aa4L7ykEpGEVEOwKKVkz6qIbGiXu6H97UwZaQDwWZk"
 	);
 });

@@ -93,7 +93,7 @@ describe("hosts", () => {
 		const resolve = m.hostRouting.resolveArchiveHost;
 		const appHosts = [
 			"ostro.email",
-			"Ostro.ai:443",
+			"Ostro.email:443",
 			"www.ostro.email",
 			"r.ostro.email",
 			"send.r.ostro.email",
@@ -106,7 +106,7 @@ describe("hosts", () => {
 		];
 		for (const host of appHosts) assert.deepEqual(await resolve(host), { isArchiveHost: false, slug: null }, host);
 		assert.deepEqual(await resolve("weekly.ostro.email"), { isArchiveHost: true, slug: "weekly" });
-		assert.deepEqual(await resolve("Field-Notes.Ostro.ai:443"), { isArchiveHost: true, slug: "field-notes" });
+		assert.deepEqual(await resolve("Field-Notes.Ostro.email:443"), { isArchiveHost: true, slug: "field-notes" });
 		assert.deepEqual(await resolve("a.weekly.ostro.email"), { isArchiveHost: true, slug: null }, "one label deep");
 	});
 
@@ -183,8 +183,8 @@ describe("shared addresses", () => {
 		assert.deepEqual(await as(user, () => m.campaigns.sendTestCampaign(id)), { ok: true });
 		const email = sent.at(-1);
 		assert.equal(email.from, "hello@weekly.ostro.email");
-		assert.match(email.html, /https:\/\/weekly\.ostro\.ai\/c\//);
-		assert.match(email.headers["List-Unsubscribe"], /^<https:\/\/weekly\.ostro\.ai\/api\/unsubscribe\?token=/);
+		assert.match(email.html, /https:\/\/weekly\.ostro\.email\/c\//);
+		assert.match(email.headers["List-Unsubscribe"], /^<https:\/\/weekly\.ostro\.email\/api\/unsubscribe\?token=/);
 		assert.equal(email.headers["Feedback-ID"], `${id}:mc-${user.accountId}:test:ostro`, "SES sends Ostro's own as it is");
 	});
 

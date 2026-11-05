@@ -17,12 +17,12 @@ let subscriptions;
 const DAY = 86_400;
 const NOW = Math.floor(Date.now() / 1000);
 const TOMORROW = new Date(Date.now() + DAY * 1000).toISOString().slice(0, 10);
-const GROWTH_MONTHLY = {
-	id: "price_growth_monthly",
+const STARTER_MONTHLY = {
+	id: "price_starter_monthly",
 	object: "price",
-	lookup_key: "ostro_growth_monthly",
-	unit_amount: 3900,
-	currency: "usd",
+	lookup_key: "ostro_starter_monthly",
+	unit_amount: 2900,
+	currency: "eur",
 	recurring: { interval: "month" },
 };
 
@@ -48,7 +48,7 @@ function subscription({ id, accountId, customer, status = "active" }) {
 		cancel_at_period_end: false,
 		items: {
 			object: "list",
-			data: [{ id: `si_${id}`, object: "subscription_item", price: GROWTH_MONTHLY, current_period_start: NOW, current_period_end: NOW + 30 * DAY }],
+			data: [{ id: `si_${id}`, object: "subscription_item", price: STARTER_MONTHLY, current_period_start: NOW, current_period_end: NOW + 30 * DAY }],
 		},
 	};
 }
@@ -156,8 +156,8 @@ after(() => app?.stop());
 test("only admins give or end a free plan: anyone else gets a 404 and nothing changes", async () => {
 	const user = await signIn("not-an-admin@example.com");
 	const id = String(user.accountId);
-	assert.equal(await as(user, () => catchNotFound(m.admin.giveFreePlan(null, form({ accountId: id, plan: "scale" })))), true);
-	assert.equal(await anonymous(() => catchNotFound(m.admin.giveFreePlan(null, form({ accountId: id, plan: "scale" })))), true);
+	assert.equal(await as(user, () => catchNotFound(m.admin.giveFreePlan(null, form({ accountId: id, plan: "pro" })))), true);
+	assert.equal(await anonymous(() => catchNotFound(m.admin.giveFreePlan(null, form({ accountId: id, plan: "pro" })))), true);
 	assert.equal((await load(user)).comp, undefined);
 
 	assert.equal((await give(user, { plan: "starter" })).ok, true);
@@ -174,12 +174,12 @@ test("a free plan opens what a paid one does: its limits, a tenant, the shared a
 	assert.equal((await m.Newsletter.findOne({ accountId: user.accountId }).lean()).sharedSender, undefined, "nothing before a plan");
 	assert.equal((await createKey(user)).code, "subscription_required");
 
-	assert.equal((await give(user, { plan: "scale" })).ok, true);
+	assert.equal((await give(user, { plan: "pro" })).ok, true);
 	const account = await load(user);
-	assert.deepEqual([account.comp.plan, account.comp.by, account.comp.until], ["scale", "admin@example.com", undefined]);
+	assert.deepEqual([account.comp.plan, account.comp.by, account.comp.until], ["pro", "admin@example.com", undefined]);
 	assert.equal(account.subscriptionStatus, undefined, "nothing on Stripe");
 	assert.equal(m.state.hasActiveSubscription(account), true);
-	assert.deepEqual(m.plans.getAccountLimits(account), { emails: 500_000, subscribers: 250_000 });
+	assert.deepEqual(m.plans.getAccountLimits(account), { emails: 100_000, subscribers: 50_000 });
 	assert.deepEqual([account.usage.emailsSent, account.usage.paidThrough], [0, null]);
 	assert.equal(account.usage.periodStart.getTime(), account.comp.grantedAt.getTime(), "the month starts with the plan");
 	assert.equal(account.ses.tenantName, `mc-${user.accountId}`);
@@ -190,13 +190,13 @@ test("a free plan opens what a paid one does: its limits, a tenant, the shared a
 	const { key } = await createKey(user);
 	const billing = await callApi("GET", "/api/v1/billing", { key });
 	assert.equal(billing.status, 200);
-	assert.deepEqual(billing.body.plan, { id: "scale", name: "Scale", interval: "month", price: 0 });
+	assert.deepEqual(billing.body.plan, { id: "pro", name: "Pro", interval: "month", price: 0 });
 	assert.deepEqual(
 		{ status: billing.body.status, isActive: billing.body.isActive, currentPeriodEnd: billing.body.currentPeriodEnd },
 		{ status: "active", isActive: true, currentPeriodEnd: null }
 	);
-	assert.deepEqual(billing.body.freePlan, { id: "scale", name: "Scale", grantedAt: account.comp.grantedAt.toISOString(), until: null });
-	assert.deepEqual([billing.body.usage.emailsLimit, billing.body.usage.subscribersLimit], [500_000, 250_000]);
+	assert.deepEqual(billing.body.freePlan, { id: "pro", name: "Pro", grantedAt: account.comp.grantedAt.toISOString(), until: null });
+	assert.deepEqual([billing.body.usage.emailsLimit, billing.body.usage.subscribersLimit], [100_000, 50_000]);
 	const tool = await callTool(key, "get_billing");
 	assert.deepEqual(tool.structuredContent.freePlan, billing.body.freePlan);
 	assert.deepEqual(tool.structuredContent.plan, billing.body.plan);
@@ -223,7 +223,7 @@ test("on a free plan every email counts, and the count starts over each month fr
 	const next = await m.usage.getUsage(account, at(1));
 	assert.deepEqual(
 		[next.emailsSent, next.emailsLimit, next.periodStart.getTime(), next.periodEnd.getTime()],
-		[0, 20_000, addMonths(grantedAt, 1).getTime(), addMonths(grantedAt, 2).getTime()],
+		[0, 25_000, addMonths(grantedAt, 1).getTime(), addMonths(grantedAt, 2).getTime()],
 		"a new month without any invoice"
 	);
 
@@ -237,9 +237,9 @@ test("on a free plan every email counts, and the count starts over each month fr
 
 test("a free plan stops at its end date like a canceled plan: no sending, no signups, the archive offline, the data kept", async () => {
 	const user = await customer("until@example.com", "until-news");
-	assert.deepEqual(await give(user, { plan: "growth", until: "2020-01-01" }), { error: "Pick an end date after today, or none" });
+	assert.deepEqual(await give(user, { plan: "starter", until: "2020-01-01" }), { error: "Pick an end date after today, or none" });
 	assert.equal((await load(user)).comp, undefined);
-	assert.equal((await give(user, { plan: "growth", until: TOMORROW })).ok, true);
+	assert.equal((await give(user, { plan: "starter", until: TOMORROW })).ok, true);
 	assert.equal((await load(user)).comp.until.toISOString(), `${TOMORROW}T00:00:00.000Z`);
 	const { key } = await createKey(user);
 	assert.equal((await callApi("POST", "/api/v1/contacts", { key, body: { newsletter: user.slug, email: "early@until.example.org" } })).status, 201);
@@ -285,10 +285,10 @@ test("ending a free plan stops sending at once and keeps the data; ending it aga
 describe("with Stripe", () => {
 	test("subscribing opens Checkout; the paid plan takes over with Stripe's month, and the free plan comes back when it ends", async () => {
 		const user = await customer("upgrade@example.com", "upgrade-news");
-		await give(user, { plan: "scale" });
-		const picked = await as(user, () => catchRedirect(m.billing.choosePlan(form({ plan: "growth", interval: "month" }))));
+		await give(user, { plan: "pro" });
+		const picked = await as(user, () => catchRedirect(m.billing.choosePlan(form({ plan: "starter", interval: "month" }))));
 		assert.equal(picked, "https://checkout.stripe.com/c/pay/cs_free", "Checkout, not the portal: there's no subscription to change");
-		const link = await as(user, () => catchRedirect(m.checkoutRoute.GET(new Request("http://localhost:3000/billing/checkout?plan=growth"))));
+		const link = await as(user, () => catchRedirect(m.checkoutRoute.GET(new Request("http://localhost:3000/billing/checkout?plan=starter"))));
 		assert.equal(link, "https://checkout.stripe.com/c/pay/cs_free", "the pricing page's buttons too");
 		assert.equal(calls.some(({ path }) => path === "/v1/billing_portal/sessions"), false);
 
@@ -298,19 +298,19 @@ describe("with Stripe", () => {
 		await deliver("checkout.session.completed", session);
 		let account = await load(user);
 		assert.equal(account.subscriptionStatus, "active");
-		assert.equal(m.plans.getAccountPlan(account).id, "growth");
-		assert.deepEqual(m.plans.getAccountLimits(account), { emails: 75_000, subscribers: 40_000 });
+		assert.equal(m.plans.getAccountPlan(account).id, "starter");
+		assert.deepEqual(m.plans.getAccountLimits(account), { emails: 25_000, subscribers: 12_500 });
 		assert.deepEqual(
 			[account.usage.emailsSent, account.usage.periodStart.getTime(), account.usage.paidThrough.getTime()],
 			[0, NOW * 1000, (NOW + 30 * DAY) * 1000],
 			"Stripe's month"
 		);
-		assert.equal(account.comp.plan, "scale", "the free plan waits behind it");
+		assert.equal(account.comp.plan, "pro", "the free plan waits behind it");
 
 		const { key } = await createKey(user);
 		const billing = await callApi("GET", "/api/v1/billing", { key });
-		assert.deepEqual(billing.body.plan, { id: "growth", name: "Growth", interval: "month", price: 39 });
-		assert.equal(billing.body.freePlan.id, "scale");
+		assert.deepEqual(billing.body.plan, { id: "starter", name: "Starter", interval: "month", price: 29 });
+		assert.equal(billing.body.freePlan.id, "pro");
 		assert.equal(billing.body.currentPeriodEnd, new Date((NOW + 30 * DAY) * 1000).toISOString());
 
 		subscriptions.set("sub_up", subscription({ id: "sub_up", accountId: user.accountId, customer: "cus_up", status: "canceled" }));
@@ -319,7 +319,7 @@ describe("with Stripe", () => {
 		assert.equal(account.subscriptionStatus, "canceled");
 		assert.equal(m.state.hasActiveSubscription(account), true, "the free plan is still running");
 		assert.equal(m.state.getAccountStatus(account), "active");
-		assert.equal(m.plans.getAccountPlan(account).id, "scale");
+		assert.equal(m.plans.getAccountPlan(account).id, "pro");
 		assert.deepEqual([account.usage.anchor.getTime(), account.usage.paidThrough], [account.comp.grantedAt.getTime(), null], "its months count from the grant again");
 
 		const late = {
@@ -335,10 +335,10 @@ describe("with Stripe", () => {
 
 	test("a free plan given while Stripe bills one waits behind it, and giving it again keeps its start", async () => {
 		const user = await signIn("paying@example.com");
-		const paid = await activate(user, { plan: "growth" });
-		assert.equal((await give(user, { plan: "scale" })).ok, true);
+		const paid = await activate(user, { plan: "starter" });
+		assert.equal((await give(user, { plan: "pro" })).ok, true);
 		let account = await load(user);
-		assert.equal(m.plans.getAccountPlan(account).id, "growth");
+		assert.equal(m.plans.getAccountPlan(account).id, "starter");
 		assert.deepEqual(account.usage, paid.usage, "the paid month is untouched");
 
 		const { grantedAt } = account.comp;

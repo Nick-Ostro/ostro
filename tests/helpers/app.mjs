@@ -101,7 +101,7 @@ export async function listPlanPrices(query) {
 		const price = parseLookupKey(lookupKey);
 		if (!price) return [];
 		const amount = getPrice(getPlan(price.plan), price.interval) * 100;
-		return [{ id: `price_${lookupKey}`, object: "price", lookup_key: lookupKey, unit_amount: amount, currency: "usd", recurring: { interval: price.interval } }];
+		return [{ id: `price_${lookupKey}`, object: "price", lookup_key: lookupKey, unit_amount: amount, currency: "eur", recurring: { interval: price.interval } }];
 	});
 	return { object: "list", data, has_more: false };
 }

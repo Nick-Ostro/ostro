@@ -213,7 +213,7 @@ describe("billing is off", () => {
 		const key = await createKey(user);
 		for (const [method, path, body] of [
 			["GET", "/api/v1/billing"],
-			["POST", "/api/v1/billing/change-plan", { plan: "growth" }],
+			["POST", "/api/v1/billing/change-plan", { plan: "pro" }],
 			["POST", "/api/v1/billing/portal"],
 		]) {
 			const response = await callApi(method, path, { key, body });
@@ -222,11 +222,11 @@ describe("billing is off", () => {
 			assert.match(response.body.error.message, /^Billing is off on this server/);
 		}
 		for (const tool of ["get_billing", "change_plan", "open_billing_portal"]) {
-			const { result } = await callTool(key, tool, tool === "change_plan" ? { plan: "growth" } : {});
+			const { result } = await callTool(key, tool, tool === "change_plan" ? { plan: "pro" } : {});
 			assert.equal(result.isError, true, tool);
 			assert.equal(JSON.parse(result.content[0].text).error.code, "billing_off", tool);
 		}
-		assert.equal(await as(user, () => catchRedirect(m.billingActions.choosePlan(form({ plan: "growth" })))), "/billing");
+		assert.equal(await as(user, () => catchRedirect(m.billingActions.choosePlan(form({ plan: "pro" })))), "/billing");
 		assert.equal(await as(user, () => catchRedirect(m.billingActions.openBillingPortal())), "/billing");
 
 		const webhook = await m.stripeWebhook.POST(new Request("http://localhost:3000/api/webhooks/stripe", { method: "POST", body: "{}" }));

@@ -172,7 +172,7 @@ describe("delivery", () => {
 		await withEnv({ ...NO_TELEGRAM, ADMIN_ALERT_EMAILS: "inbox@example.org" }, async () => {
 			const before = platformEmails.length;
 			const campaignId = "6a00000000000000000000b1";
-			await m.alerts.sendAlert({ accountId: null, key: `customer-blocked:${campaignId}`, title: "A paying customer can't send", detail: "Letter (letter.example.com, Growth plan): PostShiba suspended letter.example.com." });
+			await m.alerts.sendAlert({ accountId: null, key: `customer-blocked:${campaignId}`, title: "A paying customer can't send", detail: "Letter (letter.example.com, Pro plan): PostShiba suspended letter.example.com." });
 			await m.alerts.sendAlert({ accountId: null, key: `content-flagged:${campaignId}`, title: "Issue flagged", detail: `The content check wasn't sure about campaign ${campaignId}. It went out.` });
 			await m.alerts.sendAlert({ accountId: owner.accountId, key: "complaints", title: "Spam complaint", detail: "A reader marked an email as spam." });
 			assert.deepEqual(
@@ -392,7 +392,7 @@ describe("what alerts", () => {
 		const call = () => m.cronRoute.GET(new Request("http://localhost:3000/api/cron/hourly", { headers: { authorization: `Bearer ${CRON_SECRET}` } }));
 		const Newsletter = (await import("../models/Newsletter.js")).default;
 		const paying = await signIn("suspended-domain@example.com");
-		await activate(paying, { plan: "growth" });
+		await activate(paying, { plan: "pro" });
 		const unpaid = await signIn("unpaid-domain@example.com");
 		await m.Account.updateOne({ _id: paying.accountId }, { $set: { "postshiba.tenantId": "TnPaying1" } });
 		await m.Account.updateOne({ _id: unpaid.accountId }, { $set: { "postshiba.tenantId": "TnUnpaid1" } });
@@ -426,11 +426,11 @@ describe("what alerts", () => {
 				assert.deepEqual(firstLines(telegramMessages.slice(before.telegram)), Array(3).fill("<b>Ostro</b> · A paying customer can't send"));
 				assert.match(
 					sent[0],
-					/\n\nHeld letter \(held-letter\.example\.com, Growth plan\): PostShiba's abuse team holds held-letter\.example\.com \(operator_hold\)\. Its campaigns pause and its signup and test emails fail until it's lifted\.\nAsk PostShiba's support why it's held\.\n/
+					/\n\nHeld letter \(held-letter\.example\.com, Pro plan\): PostShiba's abuse team holds held-letter\.example\.com \(operator_hold\)\. Its campaigns pause and its signup and test emails fail until it's lifted\.\nAsk PostShiba's support why it's held\.\n/
 				);
-				assert.match(sent[1], /\n\nPaused letter \(paused-letter\.example\.com, Growth plan\): PostShiba suspended paused-letter\.example\.com \(paused\)\./);
+				assert.match(sent[1], /\n\nPaused letter \(paused-letter\.example\.com, Pro plan\): PostShiba suspended paused-letter\.example\.com \(paused\)\./);
 				assert.match(sent[1], new RegExp(`/admin/newsletters/${paused._id}$`));
-				assert.match(sent[2], /\n\nNoted letter \(noted-letter\.example\.com, Growth plan\): PostShiba suspended noted-letter\.example\.com\. Its campaigns/, "a reason that isn't a code isn't quoted");
+				assert.match(sent[2], /\n\nNoted letter \(noted-letter\.example\.com, Pro plan\): PostShiba suspended noted-letter\.example\.com\. Its campaigns/, "a reason that isn't a code isn't quoted");
 				const emailed = toAdmins(platformEmails.slice(before.emails));
 				assert.equal(emailed.length, 3);
 				assert.doesNotMatch([...sent, ...emailed.map(({ text }) => text)].join("\n"), /reader@/);

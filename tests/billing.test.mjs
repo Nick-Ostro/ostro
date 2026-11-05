@@ -13,21 +13,15 @@ const DAY = 86_400;
 const NOW = Math.floor(Date.now() / 1000);
 
 function price(lookupKey, unitAmount, interval) {
-	return { id: `price_${lookupKey}`, object: "price", lookup_key: lookupKey, unit_amount: unitAmount, currency: "usd", recurring: { interval } };
+	return { id: `price_${lookupKey}`, object: "price", lookup_key: lookupKey, unit_amount: unitAmount, currency: "eur", recurring: { interval } };
 }
 
-// Scale has no prices in this Stripe, and Pro's monthly one is $99 instead of $79: neither is on sale.
+// Both plans' prices, at lib/plans.js's amounts. The last test makes Pro's monthly one disagree.
 const PRICES = {
-	ostro_starter_monthly: price("ostro_starter_monthly", 1900, "month"),
-	ostro_starter_yearly: price("ostro_starter_yearly", 19_000, "year"),
-	ostro_growth_monthly: price("ostro_growth_monthly", 3900, "month"),
-	ostro_growth_yearly: price("ostro_growth_yearly", 39_000, "year"),
-	ostro_pro_monthly: price("ostro_pro_monthly", 9900, "month"),
+	ostro_starter_monthly: price("ostro_starter_monthly", 2900, "month"),
+	ostro_starter_yearly: price("ostro_starter_yearly", 29_000, "year"),
+	ostro_pro_monthly: price("ostro_pro_monthly", 7900, "month"),
 	ostro_pro_yearly: price("ostro_pro_yearly", 79_000, "year"),
-	ostro_max_monthly: price("ostro_max_monthly", 34_900, "month"),
-	ostro_max_yearly: price("ostro_max_yearly", 349_000, "year"),
-	ostro_ultra_monthly: price("ostro_ultra_monthly", 79_900, "month"),
-	ostro_ultra_yearly: price("ostro_ultra_yearly", 799_000, "year"),
 };
 
 function subscription({ id, accountId, customer, status = "active", lookupKey = "ostro_starter_monthly", start = NOW, end = NOW + 30 * DAY, ...rest }) {
@@ -147,12 +141,12 @@ describe("webhook signatures", () => {
 describe("checkout", () => {
 	test("picking a plan opens Checkout for the account's own subscription", async () => {
 		const user = await signIn("checkout@example.com");
-		const url = await as(user, () => catchRedirect(m.billing.choosePlan(form({ plan: "growth", interval: "year" }))));
+		const url = await as(user, () => catchRedirect(m.billing.choosePlan(form({ plan: "pro", interval: "year" }))));
 		assert.equal(url, "https://checkout.stripe.com/c/pay/cs_test_1");
 
 		const created = calls.find(({ path }) => path === "/v1/checkout/sessions").body;
 		assert.equal(created.get("mode"), "subscription");
-		assert.equal(created.get("line_items[0][price]"), "price_ostro_growth_yearly");
+		assert.equal(created.get("line_items[0][price]"), "price_ostro_pro_yearly");
 		assert.equal(created.get("client_reference_id"), String(user.accountId));
 		assert.equal(created.get("subscription_data[metadata][accountId]"), String(user.accountId));
 		assert.equal(created.get("customer_email"), "checkout@example.com");
@@ -161,7 +155,7 @@ describe("checkout", () => {
 
 	test("without attribution cookies the session's metadata is the account id alone, from the plan links and the plan picker", async () => {
 		const user = await signIn("metadata@example.com");
-		const link = new Request("http://localhost:3000/billing/checkout?plan=growth&interval=year");
+		const link = new Request("http://localhost:3000/billing/checkout?plan=pro&interval=year");
 		assert.equal(await as(user, () => catchRedirect(m.checkoutRoute.GET(link))), "https://checkout.stripe.com/c/pay/cs_test_1");
 		assert.deepEqual(checkoutMetadata(), { accountId: String(user.accountId) });
 
@@ -176,44 +170,14 @@ describe("checkout", () => {
 		const { key } = await createKey(user, "Server");
 		await m.Account.updateOne({ _id: user.accountId }, { $set: { subscriptionStatus: "canceled" } });
 
-		const response = await callApi("POST", "/api/v1/billing/change-plan", { key, body: { plan: "growth" } });
+		const response = await callApi("POST", "/api/v1/billing/change-plan", { key, body: { plan: "pro" } });
 		assert.deepEqual(response.body, { url: "https://checkout.stripe.com/c/pay/cs_test_1", kind: "checkout" });
 		assert.deepEqual(checkoutMetadata(), { accountId: String(user.accountId) });
 	});
 
-	test("a Stripe price that doesn't match the plan file, or a plan without its prices, is never offered nor reaches Checkout", async () => {
-		const user = await signIn("mismatch@example.com");
-		const real = PRICES.ostro_pro_monthly;
-		assert.equal(real.unit_amount, 9900, "Stripe says $99, the plan says $79");
-		for (const plan of ["pro", "scale"]) {
-			const url = await as(user, () => catchRedirect(m.billing.choosePlan(form({ plan, interval: "year" }))));
-			assert.equal(url, "/billing", `${plan}: the billing page, which shows the plans on sale`);
-			const link = await as(user, () => catchRedirect(m.checkoutRoute.GET(new Request(`http://localhost:3000/billing/checkout?plan=${plan}`))));
-			assert.equal(link, "/billing?interval=month", `${plan}: the plan buttons too`);
-		}
-		assert.equal(calls.some(({ path }) => path === "/v1/checkout/sessions"), false);
-		assert.deepEqual(
-			(await m.stripe.findPlansOnSale()).map(({ id }) => id),
-			["starter", "growth", "max", "ultra"]
-		);
-	});
-
-	test("Max and Ultra open Checkout with their own prices, like any plan on sale", async () => {
-		const user = await signIn("max-checkout@example.com");
-		for (const plan of ["max", "ultra"]) {
-			for (const [interval, period] of [
-				["year", "yearly"],
-				["month", "monthly"],
-			]) {
-				assert.equal(await as(user, () => catchRedirect(m.billing.choosePlan(form({ plan, interval })))), "https://checkout.stripe.com/c/pay/cs_test_1");
-				assert.equal(calls.findLast(({ path }) => path === "/v1/checkout/sessions").body.get("line_items[0][price]"), `price_ostro_${plan}_${period}`);
-			}
-		}
-	});
-
 	test("checkout.session.completed turns the plan on and starts the month", async () => {
 		const user = await signIn("paid@example.com");
-		subscriptions.set("sub_paid", subscription({ id: "sub_paid", accountId: user.accountId, customer: "cus_paid", lookupKey: "ostro_growth_monthly" }));
+		subscriptions.set("sub_paid", subscription({ id: "sub_paid", accountId: user.accountId, customer: "cus_paid", lookupKey: "ostro_pro_monthly" }));
 		const result = await deliver("checkout.session.completed", {
 			id: "cs_paid",
 			object: "checkout.session",
@@ -228,7 +192,7 @@ describe("checkout", () => {
 		assert.equal(paid.stripeCustomerId, "cus_paid");
 		assert.equal(paid.stripeSubscriptionId, "sub_paid");
 		assert.equal(paid.subscriptionStatus, "active");
-		assert.equal(paid.plan, "growth");
+		assert.equal(paid.plan, "pro");
 		assert.equal(paid.interval, "month");
 		assert.equal(paid.currentPeriodStart.getTime(), NOW * 1000);
 		assert.equal(paid.currentPeriodEnd.getTime(), (NOW + 30 * DAY) * 1000);
@@ -268,10 +232,10 @@ describe("subscription changes", () => {
 	});
 
 	test("an upgrade changes the plan; a scheduled cancel is shown, and undone", async () => {
-		subscriptions.set("sub_life", subscription({ id: "sub_life", accountId: user.accountId, customer: "cus_life", lookupKey: "ostro_growth_yearly", end: NOW + 365 * DAY }));
+		subscriptions.set("sub_life", subscription({ id: "sub_life", accountId: user.accountId, customer: "cus_life", lookupKey: "ostro_pro_yearly", end: NOW + 365 * DAY }));
 		await deliver("customer.subscription.updated", { id: "sub_life" });
 		let current = await account(user);
-		assert.equal(current.plan, "growth");
+		assert.equal(current.plan, "pro");
 		assert.equal(current.interval, "year");
 
 		subscriptions.set("sub_life", { ...subscriptions.get("sub_life"), cancel_at_period_end: true });
@@ -285,7 +249,7 @@ describe("subscription changes", () => {
 	});
 
 	test("the event's own copy is never trusted: the subscription is read from Stripe", async () => {
-		subscriptions.set("sub_life", subscription({ id: "sub_life", accountId: user.accountId, customer: "cus_life", lookupKey: "ostro_growth_yearly", end: NOW + 365 * DAY }));
+		subscriptions.set("sub_life", subscription({ id: "sub_life", accountId: user.accountId, customer: "cus_life", lookupKey: "ostro_pro_yearly", end: NOW + 365 * DAY }));
 		const result = await deliver("customer.subscription.updated", { id: "sub_life", status: "canceled", items: { data: [] } });
 		assert.deepEqual(result, { status: 200, body: { received: true, updated: true, status: "active" } });
 		assert.equal((await account(user)).subscriptionStatus, "active");
@@ -317,7 +281,7 @@ describe("subscription changes", () => {
 		} finally {
 			console.error = error;
 		}
-		assert.equal((await account(user)).plan, "growth");
+		assert.equal((await account(user)).plan, "pro");
 		assert.ok(logged.some((line) => line.includes("unknown lookup key")));
 	});
 
@@ -330,12 +294,12 @@ describe("subscription changes", () => {
 
 	test("deletion ends access: what needs a plan opens the paywall on the dashboard, and the API answers 402", async () => {
 		const { key } = await createKey(user, "Site");
-		subscriptions.set("sub_life", subscription({ id: "sub_life", accountId: user.accountId, customer: "cus_life", status: "canceled", lookupKey: "ostro_growth_yearly" }));
+		subscriptions.set("sub_life", subscription({ id: "sub_life", accountId: user.accountId, customer: "cus_life", status: "canceled", lookupKey: "ostro_pro_yearly" }));
 		await deliver("customer.subscription.deleted", { id: "sub_life" });
 
 		const ended = await account(user);
 		assert.equal(ended.subscriptionStatus, "canceled");
-		assert.equal(ended.plan, "growth", "the data and the last plan are kept");
+		assert.equal(ended.plan, "pro", "the data and the last plan are kept");
 		assert.equal((await createKey(user, "Another")).code, "subscription_required");
 		const response = await callApi("POST", "/api/v1/contacts", { key, body: { newsletter: "x", email: "a@example.com" } });
 		assert.equal(response.status, 402);
@@ -343,31 +307,26 @@ describe("subscription changes", () => {
 	});
 });
 
-describe("Max and Ultra", () => {
-	for (const [plan, name, yearlyPrice, emails, subscribers] of [
-		["max", "Max", 3490, 2_000_000, 1_000_000],
-		["ultra", "Ultra", 7990, 5_000_000, 2_500_000],
-	]) {
-		test(`a subscription to ${name}'s prices gives the account ${name} and its limits, and get_billing says so`, async () => {
-			const user = await signIn(`${plan}-webhook@example.com`);
-			const id = `sub_${plan}`;
-			const customer = `cus_${plan}`;
-			subscriptions.set(id, subscription({ id, accountId: user.accountId, customer, lookupKey: `ostro_${plan}_yearly`, end: NOW + 365 * DAY }));
-			assert.deepEqual(await deliver("customer.subscription.created", { id }), { status: 200, body: { received: true, updated: true, status: "active" } });
+describe("Pro", () => {
+	test("a subscription to Pro's prices gives the account Pro and its limits, and get_billing says so", async () => {
+		const user = await signIn("pro-webhook@example.com");
+		const id = "sub_pro";
+		const customer = "cus_pro";
+		subscriptions.set(id, subscription({ id, accountId: user.accountId, customer, lookupKey: "ostro_pro_yearly", end: NOW + 365 * DAY }));
+		assert.deepEqual(await deliver("customer.subscription.created", { id }), { status: 200, body: { received: true, updated: true, status: "active" } });
 
-			const paid = await account(user);
-			assert.deepEqual([paid.plan, paid.interval, paid.subscriptionStatus], [plan, "year", "active"]);
-			assert.deepEqual(m.plans.getAccountLimits(paid), { emails, subscribers });
-			const { key } = await createKey(user, name);
-			const billing = await callApi("GET", "/api/v1/billing", { key });
-			assert.deepEqual(billing.body.plan, { id: plan, name, interval: "year", price: yearlyPrice });
-			assert.deepEqual([billing.body.usage.emailsLimit, billing.body.usage.subscribersLimit], [emails, subscribers]);
+		const paid = await account(user);
+		assert.deepEqual([paid.plan, paid.interval, paid.subscriptionStatus], ["pro", "year", "active"]);
+		assert.deepEqual(m.plans.getAccountLimits(paid), { emails: 100_000, subscribers: 50_000 });
+		const { key } = await createKey(user, "Pro");
+		const billing = await callApi("GET", "/api/v1/billing", { key });
+		assert.deepEqual(billing.body.plan, { id: "pro", name: "Pro", interval: "year", price: 790 });
+		assert.deepEqual([billing.body.usage.emailsLimit, billing.body.usage.subscribersLimit], [100_000, 50_000]);
 
-			subscriptions.set(id, subscription({ id, accountId: user.accountId, customer, lookupKey: "ostro_growth_monthly" }));
-			await deliver("customer.subscription.updated", { id });
-			assert.equal((await account(user)).plan, "growth", "and a change away from it too");
-		});
-	}
+		subscriptions.set(id, subscription({ id, accountId: user.accountId, customer, lookupKey: "ostro_starter_monthly" }));
+		await deliver("customer.subscription.updated", { id });
+		assert.equal((await account(user)).plan, "starter", "and a change away from it too");
+	});
 });
 
 describe("invoice.paid", () => {
@@ -404,7 +363,7 @@ describe("early fraud warnings", () => {
 	const charges = new Map();
 
 	function charge(id, fields = {}) {
-		charges.set(id, { id, object: "charge", amount: 1900, amount_refunded: 0, refunded: false, disputed: false, customer: "cus_efw", payment_intent: `pi_${id}`, ...fields });
+		charges.set(id, { id, object: "charge", amount: 2900, amount_refunded: 0, refunded: false, disputed: false, customer: "cus_efw", payment_intent: `pi_${id}`, ...fields });
 	}
 
 	function warning(chargeId) {
@@ -460,14 +419,14 @@ describe("early fraud warnings", () => {
 		assert.equal(toAdmins.subject, "[Ostro] Payment refunded after a fraud warning");
 		assert.ok(
 			toAdmins.text.includes(
-				`Account ${user.accountId}: the card's bank reported a $19.00 payment as fraud (made_with_stolen_card), and Ostro refunded it and ended the plan it paid for.`
+				`Account ${user.accountId}: the card's bank reported a €29.00 payment as fraud (made_with_stolen_card), and Ostro refunded it and ended the plan it paid for.`
 			),
 			toAdmins.text
 		);
 		const toOwner = emails.find(({ to }) => to.includes("fraud@example.com"));
 		assert.equal(toOwner.subject, "[Ostro] Your plan ended");
 		assert.ok(
-			toOwner.text.includes("Your card's bank reported a $19.00 payment to Ostro as unauthorized, so we refunded it and ended the plan it paid for."),
+			toOwner.text.includes("Your card's bank reported a €29.00 payment to Ostro as unauthorized, so we refunded it and ended the plan it paid for."),
 			toOwner.text
 		);
 
@@ -508,16 +467,38 @@ describe("customer portal", () => {
 		assert.equal(portal.get("return_url"), "http://localhost:3000/billing");
 		assert.equal(portal.get("configuration"), null, "the portal set up in Stripe's dashboard");
 
-		assert.equal(await as(user, () => catchRedirect(m.billing.choosePlan(form({ plan: "growth", interval: "month" })))), "https://billing.stripe.com/p/session/bps_1");
+		assert.equal(await as(user, () => catchRedirect(m.billing.choosePlan(form({ plan: "pro", interval: "month" })))), "https://billing.stripe.com/p/session/bps_1");
 		const change = calls.findLast(({ path }) => path === "/v1/billing_portal/sessions").body;
 		assert.equal(change.get("flow_data[type]"), "subscription_update_confirm");
 		assert.equal(change.get("flow_data[subscription_update_confirm][subscription]"), "sub_portal");
-		assert.equal(change.get("flow_data[subscription_update_confirm][items][0][price]"), "price_ostro_growth_monthly");
+		assert.equal(change.get("flow_data[subscription_update_confirm][items][0][price]"), "price_ostro_pro_monthly");
 		assert.equal(calls.some(({ path }) => path === "/v1/checkout/sessions"), false, "a paying account never gets a second subscription");
 	});
 
 	test("an account that never paid has no portal", async () => {
 		const user = await signIn("noportal@example.com");
 		assert.equal(await as(user, () => catchRedirect(m.billing.openBillingPortal())), "/billing");
+	});
+});
+
+// Last: lib/stripe.js keeps the plans on sale for 10 minutes, so the clock moves past them for this one.
+describe("a price that disagrees with the plan file", () => {
+	test("is never offered nor reaches Checkout", async () => {
+		const now = Date.now;
+		const real = PRICES.ostro_pro_monthly;
+		PRICES.ostro_pro_monthly = price("ostro_pro_monthly", 9900, "month");
+		Date.now = () => now() + 11 * 60_000;
+		try {
+			const user = await signIn("mismatch@example.com");
+			const url = await as(user, () => catchRedirect(m.billing.choosePlan(form({ plan: "pro", interval: "year" }))));
+			assert.equal(url, "/billing", "the billing page, which shows the plans on sale");
+			const link = await as(user, () => catchRedirect(m.checkoutRoute.GET(new Request("http://localhost:3000/billing/checkout?plan=pro"))));
+			assert.equal(link, "/billing?interval=month", "the plan buttons too");
+			assert.equal(calls.some(({ path }) => path === "/v1/checkout/sessions"), false);
+			assert.deepEqual((await m.stripe.findPlansOnSale()).map(({ id }) => id), ["starter"]);
+		} finally {
+			Date.now = now;
+			PRICES.ostro_pro_monthly = real;
+		}
 	});
 });
